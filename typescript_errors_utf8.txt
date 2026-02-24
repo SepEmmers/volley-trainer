@@ -1,0 +1,20 @@
+﻿app/(tabs)/index.tsx(46,43): error TS7006: Parameter 'p' implicitly has an 'any' type.
+app/(tabs)/telemetry.tsx(79,30): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ goblet_squat: { id: string; name: string; category: string; equipment: string; muscles: string[]; purpose: string; execution: string; sets: string; reps: string; impact: string; unilateral: boolean; trackable: boolean; }; ... 24 more ...; ankle_sup_pro: { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ goblet_squat: { id: string; name: string; category: string; equipment: string; muscles: string[]; purpose: string; execution: string; sets: string; reps: string; impact: string; unilateral: boolean; trackable: boolean; }; ... 24 more ...; ankle_sup_pro: { ...; }; }'.
+app/(tabs)/telemetry.tsx(81,55): error TS7006: Parameter 'l' implicitly has an 'any' type.
+app/(tabs)/telemetry.tsx(95,43): error TS7006: Parameter 'log' implicitly has an 'any' type.
+app/(tabs)/telemetry.tsx(95,48): error TS7006: Parameter 'i' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(14,43): error TS7006: Parameter 'p' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(27,28): error TS7006: Parameter 'ex' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(29,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+app/(tabs)/workout.tsx(31,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+app/(tabs)/workout.tsx(37,27): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(38,28): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+app/(tabs)/workout.tsx(41,21): error TS2322: Type 'any' is not assignable to type 'never'.
+app/(tabs)/workout.tsx(41,35): error TS2322: Type 'any' is not assignable to type 'never'.
+app/(tabs)/workout.tsx(51,25): error TS7006: Parameter 'id' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(51,29): error TS7006: Parameter 'amount' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(54,37): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+app/(tabs)/workout.tsx(94,30): error TS7006: Parameter 'ex' implicitly has an 'any' type.
+app/(tabs)/workout.tsx(95,45): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+app/(tabs)/workout.tsx(158,30): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
