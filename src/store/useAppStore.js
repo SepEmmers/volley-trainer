@@ -4,6 +4,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateProgram } from '../engine/algorithm';
 import { WORKOUT_SPIKE_REWARD } from '../engine/chestEngine';
 
+// Lazy-import to avoid circular deps at module init time
+const getSync = () => {
+  const { uploadToCloud } = require('../services/syncService');
+  return { uploadToCloud };
+};
+const getAuthUser = () => {
+  try {
+    const { useAuthStore } = require('./useAuthStore');
+    return useAuthStore.getState().user;
+  } catch {
+    return null;
+  }
+};
+
+/** Push current store state to Firestore for signed-in (non-anonymous) users. */
+async function syncIfAuthenticated(state) {
+  const user = getAuthUser();
+  if (!user || user.isAnonymous) return;
+  try {
+    const { uploadToCloud } = getSync();
+    await uploadToCloud(user.uid, state);
+  } catch (_) {
+    // Silently ignore offline / permission errors
+  }
+}
+
 export const useAppStore = create(
   persist(
     (set, get) => ({
@@ -35,13 +61,25 @@ export const useAppStore = create(
       spikes: 0,       // Volleyball-themed currency earned by completing workouts
       inventory: [],   // Array of item IDs the user owns
       chest_opens: 0,  // Total chests opened (for stats)
+      equipped: {      // Currently equipped items per category
+        ball: null,
+        court: null,
+        hall: null,
+        jersey: null,
+        players: [],   // up to 6 player item IDs
+      },
 
       // Actions
       completeOnboarding: (newProfile) => {
         // Run the AI engine to generate the DUP phases based on constraints
-        const phases = generateProgram(newProfile);
+        let customItems = [];
+        try {
+          const { useSocialStore } = require('./useSocialStore');
+          customItems = [...useSocialStore.getState().customExercises, ...useSocialStore.getState().downloadedExercises];
+        } catch (_) {}
+        const phases = generateProgram(newProfile, customItems);
         
-        set({ 
+        const newState = { 
           profile: newProfile, 
           isOnboarded: true,
           workoutPhases: phases,
@@ -49,7 +87,9 @@ export const useAppStore = create(
             sessionsCompleted: 0,
             currentPhaseId: 'A' // Always start at Phase A
           }
-        });
+        };
+        set(newState);
+        syncIfAuthenticated({ ...get(), ...newState });
       },
       
       finishWorkout: (currentWeights) => {
@@ -89,7 +129,8 @@ export const useAppStore = create(
           newHistory.push(ymd);
         }
 
-        set({
+        const extra = get().mode === 'fun' ? { spikes: get().spikes + WORKOUT_SPIKE_REWARD } : {};
+        const newState = {
           weightLogs: newLogs,
           workoutHistory: newHistory,
           stats: {
@@ -97,32 +138,83 @@ export const useAppStore = create(
             sessionsCompleted: stats.sessionsCompleted + 1,
             currentPhaseId: nextPhaseId
           },
-          // Award Spikes in Fun Mode
-          ...(get().mode === 'fun' ? { spikes: get().spikes + WORKOUT_SPIKE_REWARD } : {}),
-        });
+          ...extra,
+        };
+        set(newState);
+        syncIfAuthenticated({ ...get(), ...newState });
       },
 
-      wipeData: () => set({
-        isOnboarded: false,
-        profile: {},
-        stats: { sessionsCompleted: 0, currentPhaseId: 'A' },
-        workoutPhases: [],
-        weightLogs: {},
-        workoutHistory: [],
-        mode: 'serious',
-        spikes: 0,
-        inventory: [],
-        chest_opens: 0,
-      }),
+      wipeData: () => {
+        const cleared = {
+          isOnboarded: false,
+          profile: {},
+          stats: { sessionsCompleted: 0, currentPhaseId: 'A' },
+          workoutPhases: [],
+          weightLogs: {},
+          workoutHistory: [],
+          mode: 'serious',
+          spikes: 0,
+          inventory: [],
+          chest_opens: 0,
+          equipped: { ball: null, court: null, hall: null, jersey: null, players: [] },
+        };
+        set(cleared);
+        syncIfAuthenticated(cleared);
+      },
 
-      setLanguage: (lang) => set({ language: lang }),
-      setMode: (mode) => set({ mode }),
+      /** Load cloud data into the store (called after Google sign-in). */
+      hydrateFromCloud: (data) => {
+        // Only set known keys to avoid polluting the store
+        const safeData = {};
+        const allowed = [
+          'isOnboarded', 'profile', 'stats', 'workoutPhases',
+          'weightLogs', 'workoutHistory', 'language', 'mode',
+          'spikes', 'inventory', 'chest_opens', 'equipped',
+        ];
+        allowed.forEach((k) => {
+          if (k in data) safeData[k] = data[k];
+        });
+        set(safeData);
+
+        // Hydrate social data if present
+        try {
+          const { useSocialStore } = require('./useSocialStore');
+          const socialData = {};
+          ['isPublicProfile', 'following', 'customExercises', 'downloadedExercises'].forEach(k => {
+            if (k in data) socialData[k] = data[k];
+          });
+          if (Object.keys(socialData).length > 0) {
+            useSocialStore.setState(socialData);
+          }
+        } catch (_) {}
+      },
+
+      setLanguage: (lang) => {
+        set({ language: lang });
+        syncIfAuthenticated({ ...get(), language: lang });
+      },
+      setMode: (mode) => {
+        set({ mode });
+        syncIfAuthenticated({ ...get(), mode });
+      },
       awardSpikes: (amount) => set(state => ({ spikes: state.spikes + amount })),
       spendSpikes: (amount) => set(state => ({ spikes: Math.max(0, state.spikes - amount) })),
       addToInventory: (itemId) => set(state => ({
         inventory: state.inventory.includes(itemId) ? state.inventory : [...state.inventory, itemId],
         chest_opens: state.chest_opens + 1,
       })),
+      equipItem: (itemId, category) => set(state => {
+        if (category === 'player') {
+          const players = state.equipped.players || [];
+          const alreadyEquipped = players.includes(itemId);
+          const newPlayers = alreadyEquipped
+            ? players.filter(id => id !== itemId)   // unequip
+            : [...players.slice(0, 5), itemId];      // equip (max 6)
+          return { equipped: { ...state.equipped, players: newPlayers } };
+        }
+        const isAlreadyEquipped = state.equipped[category] === itemId;
+        return { equipped: { ...state.equipped, [category]: isAlreadyEquipped ? null : itemId } };
+      }),
     }),
     {
       name: 'volleybuild-storage', // name of the item in the storage (must be unique)

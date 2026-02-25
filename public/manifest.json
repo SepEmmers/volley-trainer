@@ -1,0 +1,31 @@
+{
+  "name": "CourtReady – Volleybal Trainer",
+  "short_name": "CourtReady",
+  "description": "Jouw persoonlijke volleybal trainingsapp met AI coaching, progressieve overload en een team builder.",
+  "start_url": "/volley-trainer/",
+  "scope": "/volley-trainer/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1E3A8A",
+  "theme_color": "#1E3A8A",
+  "icons": [
+    {
+      "src": "/volley-trainer/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/volley-trainer/assets/images/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/volley-trainer/assets/images/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "health", "fitness"]
+}

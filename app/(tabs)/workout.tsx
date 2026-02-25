@@ -14,9 +14,15 @@ import { router } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 export default function WorkoutScreen() {
-  const { profile, stats, workoutPhases, finishWorkout, weightLogs } = useAppStore();
-  const { t } = useTranslation();
+  const { profile, stats, workoutPhases, finishWorkout, weightLogs, workoutHistory } = useAppStore();
+  const { t, language } = useTranslation();
 
+  // Check if today's workout is already done
+  const today = new Date();
+  const todayYmd = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const todayDone = (workoutHistory || []).includes(todayYmd);
+
+  const [extraMode, setExtraMode] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   
   const currentPhase = workoutPhases.find((p: any) => p.id === stats.currentPhaseId);
@@ -178,6 +184,44 @@ export default function WorkoutScreen() {
 
       <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
+        {/* Today-done completion banner */}
+        {todayDone && !extraMode && (
+          <View style={{ backgroundColor: '#F0FDF4', borderRadius: 20, padding: 20, marginBottom: 20, borderWidth: 2, borderColor: '#86EFAC', alignItems: 'center' }}>
+            <Text style={{ fontSize: 36, marginBottom: 8 }}>🏆</Text>
+            <Text style={{ fontSize: 20, fontWeight: '900', color: '#15803D', marginBottom: 4 }}>
+              {language === 'nl' ? 'Training Compleet!' : 'Workout Complete!'}
+            </Text>
+            <Text style={{ fontSize: 14, color: '#166534', fontWeight: '600', textAlign: 'center', marginBottom: 16 }}>
+              {language === 'nl' ? 'Je hebt vandaag al getraind. Goed bezig! 💪' : "You've already trained today. Great work! 💪"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setExtraMode(true)}
+              style={{ backgroundColor: '#1E3A8A', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <Dumbbell size={18} color="#ffffff" />
+              <Text style={{ color: '#ffffff', fontWeight: '900', fontSize: 16 }}>
+                {language === 'nl' ? 'Extra Oefenen' : 'Extra Practice'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Extra mode banner */}
+        {todayDone && extraMode && (
+          <View style={{ backgroundColor: '#EFF6FF', borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 1.5, borderColor: '#BFDBFE', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: '#1E3A8A', fontWeight: '800', fontSize: 14 }}>
+              {language === 'nl' ? '💪 Extra Oefensessie' : '💪 Bonus Practice Session'}
+            </Text>
+            <TouchableOpacity onPress={() => setExtraMode(false)} style={{ padding: 4 }}>
+              <Text style={{ color: '#3B82F6', fontSize: 13, fontWeight: '700' }}>✕ Stop</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Hide workout when done (unless in extra mode) */}
+        {(!todayDone || extraMode) && (
+          <>
+
         {/* Warmup Block */}
         <RoutineBlock
           title={t('routine.warmup')}
@@ -287,33 +331,34 @@ export default function WorkoutScreen() {
               {ex.trackable && !isDone && (
                 <View className="border-t border-slate-100 bg-slate-50/50 p-5 rounded-b-3xl">
                    {!calibrated.includes(ex.id) ? (
-                      <View className="items-center justify-center p-2 mb-2">
-                        <Text className="text-brand-dark font-black text-center text-lg mb-2">{t('workout.newDrillTitle')}</Text>
-                        <Text className="text-slate-500 font-medium text-center text-sm mb-4">{t('workout.newDrillBody')(ex.name, ex.reps)}</Text>
-                        <View className="flex-row items-center gap-3">
-                           <TouchableOpacity onPress={() => setCalibrated([...calibrated, ex.id])} className="px-4 py-3 bg-white border border-slate-200 rounded-xl flex-1 items-center">
-                              <Text className="text-slate-500 font-bold">{t('workout.skipCalibrate')}</Text>
-                           </TouchableOpacity>
-                           <View className="flex-row items-center bg-white rounded-xl border border-brand-orange shadow-sm flex-1">
-                              <TextInput 
-                                value={currentWeights[ex.id]?.toString() || ''}
-                                onChangeText={t => setCurrentWeights({...currentWeights, [ex.id]: t})}
-                                placeholder="0"
-                                keyboardType="numeric"
-                                className="flex-1 text-center text-brand-orange font-black text-xl p-3"
-                              />
-                               <View className="bg-brand-orange/10 px-2 py-3 rounded-r-xl border-l border-brand-orange/20 h-full justify-center">
-                                  <Text className="text-brand-orange font-bold text-xs uppercase">{profile.units === 'metric' ? 'kg' : 'lb'}</Text>
-                               </View>
-                           </View>
-                           <TouchableOpacity 
-                               onPress={() => setCalibrated([...calibrated, ex.id])}
-                               disabled={!currentWeights[ex.id]} 
-                               className={`px-4 py-3 rounded-xl flex-1 items-center ${currentWeights[ex.id] ? 'bg-brand-orange' : 'bg-slate-200'}`}
-                            >
-                               <Text className="text-white font-bold">{t('workout.setBaseline')}</Text>
-                           </TouchableOpacity>
+                      <View style={{ gap: 10 }}>
+                        <Text style={{ textAlign: 'center', fontWeight: '900', fontSize: 16, color: '#0F172A', marginBottom: 2 }}>{t('workout.newDrillTitle')}</Text>
+                        <Text style={{ textAlign: 'center', fontWeight: '500', fontSize: 13, color: '#64748B', marginBottom: 6 }}>{t('workout.newDrillBody')(ex.name, ex.reps)}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 14, borderWidth: 2, borderColor: '#FF5A00', overflow: 'hidden' }}>
+                          <TextInput
+                            value={currentWeights[ex.id]?.toString() || ''}
+                            onChangeText={v => setCurrentWeights({...currentWeights, [ex.id]: v})}
+                            placeholder="0"
+                            keyboardType="numeric"
+                            style={{ flex: 1, textAlign: 'center', color: '#FF5A00', fontWeight: '900', fontSize: 28, paddingVertical: 14 }}
+                          />
+                          <View style={{ backgroundColor: '#FFF7F0', paddingHorizontal: 16, paddingVertical: 14, borderLeftWidth: 1.5, borderLeftColor: '#FFD4B3' }}>
+                            <Text style={{ color: '#FF5A00', fontWeight: '700', fontSize: 14 }}>{profile.units === 'metric' ? 'kg' : 'lb'}</Text>
+                          </View>
                         </View>
+                        <TouchableOpacity
+                          onPress={() => setCalibrated([...calibrated, ex.id])}
+                          disabled={!currentWeights[ex.id]}
+                          style={{ backgroundColor: currentWeights[ex.id] ? '#FF5A00' : '#E2E8F0', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
+                        >
+                          <Text style={{ color: currentWeights[ex.id] ? '#ffffff' : '#94A3B8', fontWeight: '900', fontSize: 16 }}>{t('workout.setBaseline')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => setCalibrated([...calibrated, ex.id])}
+                          style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' }}
+                        >
+                          <Text style={{ color: '#64748B', fontWeight: '700', fontSize: 14 }}>{t('workout.skipCalibrate')}</Text>
+                        </TouchableOpacity>
                       </View>
                    ) : (
                     <View className="flex-row items-center justify-between">
@@ -358,16 +403,35 @@ export default function WorkoutScreen() {
           items={STRETCHING_ROUTINE}
           category="stretching"
         />
-
-        {allDone && (
-          <TouchableOpacity 
-            onPress={handleFinish}
-            className="w-full bg-brand-orange py-5 rounded-2xl flex-row items-center justify-center gap-2 mt-4 mb-8 shadow-xl shadow-brand-orange/30 transition-transform active:scale-95"
-          >
-            <Text className="text-white font-black text-xl tracking-tight">{t('workout.returnLocker')}</Text>
-            <ChevronRight color="#ffffff" size={24} strokeWidth={3} />
-          </TouchableOpacity>
+          </>
         )}
+
+        {/* Finish Button — always visible */}
+        <TouchableOpacity
+          onPress={handleFinish}
+          style={{
+            width: '100%',
+            backgroundColor: allDone ? '#FF5A00' : '#E2E8F0',
+            borderRadius: 18,
+            paddingVertical: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            marginTop: 16,
+            marginBottom: 32,
+            shadowColor: allDone ? '#FF5A00' : 'transparent',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: allDone ? 0.35 : 0,
+            shadowRadius: 14,
+            elevation: allDone ? 8 : 0,
+          }}
+        >
+          <Text style={{ color: allDone ? '#ffffff' : '#94A3B8', fontWeight: '900', fontSize: 18, letterSpacing: 0.3 }}>
+            {allDone ? t('workout.returnLocker') : (language === 'nl' ? 'Toch Voltooien' : 'Finish Anyway')}
+          </Text>
+          <ChevronRight color={allDone ? '#ffffff' : '#94A3B8'} size={22} strokeWidth={3} />
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Floating Rest Timer Overlay */}

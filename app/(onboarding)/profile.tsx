@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { router } from 'expo-router';
 import { useAppStore } from '../../src/store/useAppStore';
 import { User, Ruler, Weight, Target, Shield, Zap, ChevronRight, Activity, ArrowUpRight, Trophy, Gamepad2, BarChart2 } from 'lucide-react-native';
@@ -39,7 +39,12 @@ export default function ProfileScreen() {
           </Svg>
       </View>
 
-      <View className="p-8 flex-1">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+      <View className="px-6 pt-6 pb-4 flex-1">
         <View className="flex-row justify-between items-center mb-8">
           <View className="flex-row items-center gap-2">
             <Trophy color="#FF5A00" size={26} />
@@ -94,7 +99,7 @@ export default function ProfileScreen() {
                       value={data.age?.toString() || '25'}
                       onChangeText={(t) => setData({...data, age: parseInt(t) || 0})}
                       keyboardType="numeric"
-                      className="flex-1 text-4xl font-black text-brand-dark p-0"
+                      className="text-4xl font-black text-brand-dark p-0 min-w-[70px]"
                     />
                   </View>
                 </View>
@@ -112,7 +117,7 @@ export default function ProfileScreen() {
                       value={data.height.toString()}
                       onChangeText={(t) => setData({...data, height: parseInt(t) || 0})}
                       keyboardType="numeric"
-                      className="flex-1 text-4xl font-black text-brand-dark p-0"
+                      className="text-4xl font-black text-brand-dark p-0 min-w-[70px]"
                     />
                     <Text className="text-slate-400 font-bold">{data.units === 'metric' ? 'cm' : 'in'}</Text>
                   </View>
@@ -128,7 +133,7 @@ export default function ProfileScreen() {
                       value={data.weight.toString()}
                       onChangeText={(t) => setData({...data, weight: parseInt(t) || 0})}
                       keyboardType="numeric"
-                      className="flex-1 text-4xl font-black text-brand-dark p-0"
+                      className="text-4xl font-black text-brand-dark p-0 min-w-[70px]"
                     />
                     <Text className="text-slate-400 font-bold">{data.units === 'metric' ? 'kg' : 'lbs'}</Text>
                   </View>
@@ -341,7 +346,41 @@ export default function ProfileScreen() {
             <ChevronRight color="#ffffff" size={24} strokeWidth={3} />
           </TouchableOpacity>
         </View>
+        <View style={{ flexDirection: 'row', gap: 12, paddingTop: 16, paddingBottom: 8, marginTop: 8, borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: '#FAFAFA' }}>
+          {step > 1 && (
+            <TouchableOpacity
+              onPress={() => setStep(s => s - 1)}
+              style={{ paddingHorizontal: 24, paddingVertical: 18, borderRadius: 20, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E2E8F0', minWidth: 90 }}
+            >
+              <Text style={{ fontWeight: '800', color: '#64748B', fontSize: 15 }}>← Terug</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={handleNext}
+            disabled={step === 1 && !data.name}
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: (step === 1 && !data.name) ? '#E2E8F0' : '#FF5A00',
+              paddingVertical: 18,
+              borderRadius: 20,
+              gap: 8,
+              shadowColor: '#FF5A00',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: (step === 1 && !data.name) ? 0 : 0.3,
+              shadowRadius: 10,
+              elevation: (step === 1 && !data.name) ? 0 : 6,
+            }}
+          >
+            <Text style={{ color: (step === 1 && !data.name) ? '#94A3B8' : '#ffffff', fontWeight: '900', fontSize: 17 }}>
+              {step < TOTAL_STEPS ? 'Volgende →' : '🎯 Start Assessment'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

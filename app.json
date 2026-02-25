@@ -24,7 +24,12 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "CourtReady",
+      "shortName": "CourtReady",
+      "description": "Jouw persoonlijke volleybal trainingsapp",
+      "themeColor": "#1E3A8A",
+      "backgroundColor": "#1E3A8A"
     },
     "plugins": [
       "expo-router",

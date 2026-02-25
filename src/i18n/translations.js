@@ -293,6 +293,171 @@ export const translations = {
         purpose: 'Versterkt de laterale en mediale enkelligamenten, verhoogt drastisch de weerstand tegen verstuikingen.',
         execution: 'Sta op blote voeten. Rol langzaam naar buiten op de buitenranden van de voeten (supinatie), dan naar binnen op de binnenranden (pronatie).',
       },
+      barbell_back_squat: {
+        name: 'Barbell Back Squat',
+        purpose: 'Bouwt fundamentele structurele kracht op die vereist is voor maximale explosiviteit en verticale verplaatsing.',
+        execution: 'Sta met voeten iets wijder dan schouderbreedte. Zak met de heupen naar achteren alsof je op een stoel gaat zitten. Druk explosief omhoog.',
+      },
+      split_squat_jumps: {
+        name: 'Split Squat Sprongen',
+        purpose: 'Vereist hoge unilaterale stabilisatie bij de landing, bootst uit balans geraakte veldreddingen na.',
+        execution: 'Begin in een lunge (uitvalspas). Spring explosief omhoog en wissel in de lucht van been. Land zachtjes en herhaal direct.',
+      },
+      seated_box_jumps: {
+        name: 'Zittende Kistsprongen',
+        purpose: 'Ontwikkelt pure, opstartende verticale kracht vanuit een statische positie, zonder neerwaarts momentum of elastische energie.',
+        execution: 'Zit op een kist. Spring explosief omhoog op een hogere kist recht voor je. Stap voorzichtig naar beneden.',
+      },
+      broad_jumps: {
+        name: 'Verspringen (Broad Jumps)',
+        purpose: 'Ontwikkelt horizontale krachtsapplicatie, mechanisch essentieel om de voorwaartse asnelheid van de aanloop om te zetten in verticale lift.',
+        execution: 'Voer opeenvolgende maximale voorwaartse sprongen uit. Focus op explosieve heupextensie en een stabiele landing.',
+      },
+      jump_rope_intervals: {
+        name: 'Touwtjespringen Intervallen',
+        purpose: 'Bouwt uithoudingsvermogen in snelle spiervezels en versterkt enkelstijfheid die nodig is voor krachtsoverdracht bij grote sprongen.',
+        execution: 'Repetitief springen met lage amplitude. Houd de enkels stijf en kaats snel terug vanaf de bal van de voet.',
+      },
+      lateral_scissor_steps: {
+        name: 'Laterale Schaarpassen',
+        purpose: 'Verbetert voetsnelheid, laterale neuromusculaire reactietijd en stijfheid van ondrbeen.',
+        execution: 'Sluit zijdelings aan bij bv. een loopladder. Kruis-stap elke voet snel in en uit terwijl je zijwaarts beweegt. Blijf op de ballen van je voeten.',
+      },
+      court_speed_drill: {
+        name: 'Veldsnelheid (5-Kegels)',
+        purpose: 'Ontwikkelt sportspecifiek ruimtelijk inzicht en dwingt optimale net-gerichte verdedigingstechnieken af.',
+        execution: 'Sprint, schuifel of loop achteruit van het midden naar elke hoek in een willekeurig patroon. Houd altijd je torso recht naar het net.',
+      },
+      visual_command_chopping: {
+        name: 'Visuele Commando Dribbel',
+        purpose: 'Richt zich exclusief op het alactisch energiesysteem en maximaliseert cognitieve verwerkingssnelheid zonder vermoeidheid.',
+        execution: 'Dribbel snel ter plaatse (voeten trippelen). Reageer op visuele signalen (armen omhoog = sprint, omlaag = achteruit). Maximaal 8-10 seconden.',
+      },
+      partner_drop_drill: {
+        name: 'Partner Val Reflex',
+        purpose: 'Verkleint de reactietijd en forceert snellere neurale prikkels voor verdedigend graven (diggen).',
+        execution: 'Neem een lage defensieve houding aan. Een partner laat willekeurig een bal vallen. Laat je zwaartepunt snel zakken om hem te vangen voor de tweede bots.',
+      },
+      wall_dig_reaction: {
+        name: 'Muur Dig Reactie',
+        purpose: 'Daagt de visuele tracking uit van een onvoorspelbare rebound voor betere verdedigende passes.',
+        execution: 'Een partner slaat van achter jou een bal tegen een muur. Volg visueel de terugslag en voer een technisch correcte dig uit.',
+      },
+      lateral_pattern_hops: {
+        name: 'Laterale & Patroon Sprongetjes',
+        purpose: 'Bouwt multi-planaire enkelstijfheid en laterale explosieve capaciteit op.',
+        execution: 'Spring zo snel en stijf mogelijk zijwaarts, van voor naar achteren en schuin in de hoeken.',
+      },
+      med_ball_rotational_throws: {
+        name: 'Med Ball Rotatieworpen',
+        purpose: 'Overbelast expliciet de rotatiemechanica en dwarskracht vereist voor het slaan (spiken).',
+        execution: 'Sta loodrecht op een stevige muur. Roteer explosief door de heupen en torso om de medicijnbal tegen de muur te werpen.',
+      },
+      half_kneeling_landmine_press: {
+        name: 'Halfknielende Landmine Pers',
+        purpose: 'Ontwikkelt unilaterale perskracht boven het hoofd terwijl de core maximaal moet stabiliseren om zijwaartse valing te vermijden.',
+        execution: 'Kniel op één been. Druk de halter (of dumbbell) voorwaarts en omhoog vanaf de schouder. Controleer de terugweg.',
+      },
+      dumbbell_pullovers: {
+        name: 'Dumbbell Pullovers',
+        purpose: 'Bouwt de lattisimus dorsi, de belangrijkste snelheidsspier van de neerwaartse armzwaai.',
+        execution: 'Lig loodrecht over een bankje. Laat een dumbbell met licht gebogen ellebogen achter het hoofd zakken, en trek hem agressief terug over de borst.',
+      },
+      cable_thoracic_rotational_row: {
+        name: 'Thoracale Rotatie Roeien',
+        purpose: 'Versterkt de trekkende mechanismen van de achterkant, cruciaal voor de snelle armterugtrekking (cocking).',
+        execution: 'Trek een weerstandsband (of kabel) schuin over het lichaam terwijl je actief de borstwervelkolom roteert. Knijp de schouderbladen samen.',
+      },
+      strict_planks: {
+        name: 'Strikte Planken',
+        purpose: 'Anti-extensie mechanisme. Door de bilspieren te spannen ontstaat een achterwaartse bekkenkanteling, wat de wervelkolom veilig vergrendelt.',
+        execution: 'Steun op onderarmen en tenen. Span de billen en buikspieren hard samen. Houd de positie vast zonder door te zakken in je rug.',
+      },
+      stability_ball_stir_the_pot: {
+        name: 'Stir the Pot (Dynamische Plank)',
+        purpose: 'Dynamische anti-extensie. Weerstaat de neiging van de heupen om zijwaarts te zwaaien of te zakken tijdens armbewegingen.',
+        execution: 'Leg je onderarmen op een fitnessbal in plankpositie. Draai kleine, gecontroleerde cirkels met de ellebogen terwijl de core muurvast blijft.',
+      },
+      russian_twists: {
+        name: 'Russian Twists',
+        purpose: 'Conditioneert de interne en externe schuine buikspieren voor de repetitieve rotatiebelasting bij het slaan.',
+        execution: 'Balanceer op je zitbotjes met een lichte leuning naar achteren en een aangespannen core. Roteer de romp van zij naar zij.',
+      },
+      bird_dogs: {
+        name: 'Bird Dogs (Vogellhonden)',
+        purpose: 'Bouwt diepe spinale stabilisatorkracht op via anti-rotatie en activering van de achterste keten.',
+        execution: 'Ga op handen en knieën. Strek gelijktijdig de tegenovergestelde arm en been evenwijdig aan de vloer zonder de heupen over te hellen.',
+      },
+      serratus_wall_slides: {
+        name: 'Serratus Muur Slides',
+        purpose: 'Verplichte activering van de serratus anterior om opwaartse rotatie van het schouderblad te garanderen en impingement te voorkomen.',
+        execution: 'Sta met het gezicht naar een muur, onderarmen ertegen. Druk de armen in de muur (rekken over de borstkast) en glijd ze langzaam omhoog.',
+      },
+      floor_angels: {
+        name: 'Vloer Engelen (Floor Angels)',
+        purpose: 'Deactiveert de overactieve borstspieren, waardoor uitstekende isolatie van de schouderbladstabilisatoren (prehab) mogelijk wordt.',
+        execution: 'Ligt op je rug, armen in een "L"-vorm op de grond. Glijd de armen naar boven het hoofd zonder de polsen of ellebogen los te maken van de vloer.',
+      },
+      diagonal_shoulder_walks: {
+        name: 'Diagonale Schouder Wandeling',
+        purpose: 'Versterkt de serratus in functionele synergie met de voorste schouderkoppen en rotatorenmanchet.',
+        execution: 'Sta rechtop met lichte dumbbells diagonaal aan de zijkant geduwd. Til ze zonder veel zwaai langzaam op tot schouderhoogte.',
+      },
+      pendulum_swings: {
+        name: 'Pendel Zwaaien',
+        purpose: 'Fase 1 Rehab: Behoudt de gewrichtsruimte en bevordert bloedtoevoer (genezing) zonder een zware spiercontractie.',
+        execution: 'Buig voorover en laat de geblesseerde arm compleet slap hangen. Gebruik de rompstam om kleine draaibewegingen in de arm te forceren.',
+      },
+      cane_assisted_rom: {
+        name: 'Stok Geassisteerde ROM',
+        purpose: 'Fase 1 Rehab: Herstelt passief de verloren bewegingsvrijheid in het gewricht op veilige wijze.',
+        execution: 'Lig op de rug en houd een lichte stok vast. Gebruik je ongeschonden arm om zachtjes je geblesseerde arm over of naast je hoofd te duwen.',
+      },
+      band_internal_rotation: {
+        name: 'Dynamische Interne Rotatie (Elastiek)',
+        purpose: 'Isoleert en versterkt de interne schouderrotatoren (in waaiervorm) voor gebalanceerde gewrichtsstabiliteit.',
+        execution: 'Bind een weerstandsband op ellebooghoogte. Houd de elleboog tegen de ribben vastgespeld en haal de band binnenwaarts over de maag.',
+      },
+      shoulder_decelerators: {
+        name: 'Schouder Decelerators (Excentrisch)',
+        purpose: 'Traint het bindweefsel wezenlijk om de massieve afremmingskrachten ontketend na een aanval feilloos te absorberen.',
+        execution: 'Lig zijdelings en laat een zware dumbbell excentrisch in externe rotatie langzaam wegzakken tegen een pijnlijke langzame (5 sec) tel.',
+      },
+      side_plank_external_rotation: {
+        name: 'Zijplank met Externe Rotatie',
+        purpose: 'Fase 3 Rehab: Belast de core drastisch en dwingt de rotatorenmanchet zich in te spannen onder hoge systemische spanning.',
+        execution: 'Neem een volledige zijplank-positie aan. Roteer met de vrije arm (mbv een band/gewicht) gecontroleerd naar buiten terwijl de kern stijf blijft.',
+      },
+      ankle_alphabet: {
+        name: 'Enkel Alfabet',
+        purpose: 'Fase 1 Enkel Rehab: Behoudt optimale gewrichtsmobiliteit en werkt als een spierpomp om zwellingen binnen het ligament op te ruimen.',
+        execution: 'Zit met het verstuikte been omhoog. Traceer de volledige vorm van alle ABC letters in de lucht door exclusief te sturen met je grote teen.',
+      },
+      towel_scrunches: {
+        name: 'Handdoek Grijpen',
+        purpose: 'Versterkt de spiertjes aan de onderkant van de voetboog; cruciaal voor proprioceptie herstel na inversietrauma\'s.',
+        execution: 'Zit op blote voeten en gebruik de tenen om een platte handdoek in de rimpels te grijpen over een gladde ondergrond (trek hem naar je toe).',
+      },
+      seated_calf_stretches: {
+        name: 'Zittende Pees & Kuitrekkingen',
+        purpose: 'Zorgt voor plastische deformatie (verlenging) van dikke kuitweefsels om het dorsaalflexiebereik veilig te herstellen.',
+        execution: 'Zit op de grond met knieën en benen volledig gestrekt, sla een handdoekleis om de bal van je voet en trek hevig voor 15 tot 30 seconden achtereen.',
+      },
+      four_way_band_ankle: {
+        name: '4-Benade Band Enkelkracht',
+        purpose: 'Fase 2 Enkel Rehab: Bouwt isotonisch uithoudingsvermogen op in alle passieve stabiliserende structuren en botbanden.',
+        execution: 'Veranker een kleine rekband rond je tenenvoet; lever hierin tegendruk door 4 kanten uit te drukken (rugwaarts optillen, strekken, inwaarts, uitwaarts).',
+      },
+      balance_progression: {
+        name: 'Balans Progressie (Proprioceptie)',
+        purpose: 'Fase 3 Enkel Rehab: Herscholt beschadigde zenuwcellen in het enkelkapsel om voetposities terug aan te wijzen, ter voorkoming van toekomstige snelle omslagen.',
+        execution: 'Strikte 1-benige standen. Sluit ogen als het je te handig wordt. Ga gradueel nadien over in wankelere bodems of activeer plotse hand/arm klappen.',
+      },
+      single_leg_knee_extension_isometrics: {
+        name: '1-Benige Knie Extensie Isometrie',
+        purpose: 'Stage 1 Patellaere Tendinopathie: Langdurige zware isometrie veroorzaakt immense verdovende zenuweffecten direct in de knie en stilt peesontsteking snel.',
+        execution: 'Trek zittend een stevig verankerde elastiek voorwaarts, houd hiervoor je knie vast tussen de 30 ten 60 hoekgraden gefixeerd. Ontspan nimmer over de tijd duur.',
+      },
     },
   },
 
