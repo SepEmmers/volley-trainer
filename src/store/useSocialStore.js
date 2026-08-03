@@ -23,11 +23,15 @@ export const useSocialStore = create(
   persist(
     (set, get) => ({
       isPublicProfile: false,
+      publicProfileOptions: { showCalendar: false, showProgress: false, showCollection: false, showTeam: false },
       following: [],            // Array of UIDs user follows
       customExercises: [],      // Array of CustomItems created locally
       downloadedExercises: [],  // Array of CustomItems downloaded from community
 
       setIsPublicProfile: (isPublic) => set({ isPublicProfile: isPublic }),
+      setPublicProfileOption: (key, value) => set(state => ({
+        publicProfileOptions: { ...state.publicProfileOptions, [key]: value }
+      })),
       
       toggleFollow: (uid) => set((state) => {
         const currentlyFollowing = state.following.includes(uid);
@@ -64,6 +68,7 @@ export const useSocialStore = create(
       // Wipe state when user logs out or wipes data
       clearSocialState: () => set({
         isPublicProfile: false,
+        publicProfileOptions: { showCalendar: false, showProgress: false, showCollection: false, showTeam: false },
         following: [],
         customExercises: [],
         downloadedExercises: [],

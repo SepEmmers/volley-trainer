@@ -162,8 +162,9 @@ export default function ProfileScreen() {
                 <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Primary Focus</Text>
                 <View className="space-y-3">
                   {[
+                    { id: 'knee_rehab', icon: Shield, label: 'Knee Strengthening & Rehab', desc: 'VMO, Glute & Knee Valgus (DKV) revalidation', bg: 'bg-indigo-500/10', color: '#6366f1' },
                     { id: 'vertical', icon: ArrowUpRight, label: 'Max Vertical Jump', desc: 'Prioritize explosiveness and height', bg: 'bg-brand-orange/10', color: '#FF5A00' },
-                    { id: 'injury', icon: Shield, label: 'Injury Prehabilitation', desc: 'Joint resilience and longevity', bg: 'bg-emerald-500/10', color: '#10b981' },
+                    { id: 'injury', icon: Shield, label: 'General Injury Prehab', desc: 'Joint resilience and longevity', bg: 'bg-emerald-500/10', color: '#10b981' },
                     { id: 'agility', icon: Target, label: 'Court Agility', desc: 'Lateral quickness and reaction', bg: 'bg-brand-blue/10', color: '#1E3A8A' }
                   ].map(g => (
                     <TouchableOpacity 
@@ -199,19 +200,105 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
+              <View className="mt-6">
+                <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t('profile.schedule')}</Text>
+                
+                {/* Auto vs Manual Toggle */}
+                <View className="flex-row bg-slate-100 rounded-2xl p-1.5 border border-slate-200 mb-4">
+                  <TouchableOpacity 
+                    onPress={() => setData({...data, schedule: 'auto'})} 
+                    className={`flex-1 py-3 rounded-xl items-center transition-colors ${data.schedule === 'auto' || !data.schedule ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+                  >
+                    <Text className={`font-bold ${data.schedule === 'auto' || !data.schedule ? 'text-brand-orange' : 'text-slate-400'}`}>{t('profile.scheduleAuto')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => setData({...data, schedule: typeof data.schedule === 'object' ? data.schedule : { '1': 'workout', '2': 'rest', '3': 'workout', '4': 'rest', '5': 'workout', '6': 'match', '7': 'rest' }})} 
+                    className={`flex-1 py-3 rounded-xl items-center transition-colors ${typeof data.schedule === 'object' ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+                  >
+                    <Text className={`font-bold ${typeof data.schedule === 'object' ? 'text-brand-orange' : 'text-slate-400'}`}>{t('profile.scheduleManual')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Auto Configurator */}
+                {(data.schedule === 'auto' || !data.schedule) && (
+                  <View className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
+                    <Text className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">{t('profile.workoutsPerWeek') || 'Workouts Per Week'}</Text>
+                    <View className="flex-row bg-white rounded-xl p-1 border border-slate-200 mb-5">
+                      {[2, 3, 4].map(num => (
+                        <TouchableOpacity 
+                          key={num} 
+                          onPress={() => setData({...data, daysPerWeek: num})} 
+                          className={`flex-1 py-2.5 rounded-lg items-center transition-colors ${data.daysPerWeek === num ? 'bg-brand-blue shadow-sm' : ''}`}
+                        >
+                          <Text className={`font-bold ${data.daysPerWeek === num ? 'text-white' : 'text-slate-400'}`}>{num} {t('profile.days') || 'Days'}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <Text className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">{t('profile.matchDaysIntro') || 'Volleyball / Match Days'}</Text>
+                    <View className="flex-row justify-between">
+                      {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                         const dayLabels = t('profile.scheduleDayLabels') || ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+                         const isMatch = (data.matchDays || []).includes(day);
+                         return (
+                           <TouchableOpacity 
+                             key={day} 
+                             onPress={() => {
+                               const newMatches = isMatch 
+                                 ? (data.matchDays || []).filter((d: number) => d !== day)
+                                 : [...(data.matchDays || []), day];
+                               setData({...data, matchDays: newMatches});
+                             }}
+                             className={`w-10 h-10 rounded-full items-center justify-center border-2 ${isMatch ? 'bg-brand-blue/10 border-brand-blue' : 'bg-white border-slate-200'}`}
+                           >
+                             <Text className={`font-bold text-xs ${isMatch ? 'text-brand-blue' : 'text-slate-400'}`}>{dayLabels[day - 1]}</Text>
+                           </TouchableOpacity>
+                         );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {/* Specific Days Selector */}
+                {typeof data.schedule === 'object' && (
+                  <View className="bg-white border-2 border-slate-200 rounded-3xl p-5 shadow-sm">
+                    <Text className="text-xs font-bold text-slate-500 uppercase tracking-widest text-center mb-4">{t('profile.scheduleSelect')}</Text>
+                    {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                       const currentType = data.schedule[day.toString()];
+                       const toggleType = () => {
+                          const nextType = currentType === 'workout' ? 'rest' : currentType === 'rest' ? 'match' : 'workout';
+                          setData({ ...data, schedule: { ...data.schedule, [day.toString()]: nextType } });
+                       };
+                       const dayLabels = t('profile.scheduleDayLabels') || ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+                       return (
+                         <View key={day} className="flex-row items-center justify-between mb-3">
+                           <Text className="font-bold text-brand-dark w-12">{dayLabels[day - 1] || day}</Text>
+                           <TouchableOpacity 
+                             onPress={toggleType}
+                             className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl border-2 ${
+                               currentType === 'workout' ? 'bg-brand-orange/10 border-brand-orange' :
+                               currentType === 'match' ? 'bg-brand-blue/10 border-brand-blue' :
+                               'bg-slate-50 border-slate-200'
+                             }`}
+                           >
+                             <Text className={`font-bold text-xs ${
+                               currentType === 'workout' ? 'text-brand-orange' :
+                               currentType === 'match' ? 'text-brand-blue' :
+                               'text-slate-400'
+                             }`}>
+                               {currentType === 'workout' ? t('profile.scheduleDayTypes.workout') : currentType === 'match' ? t('profile.scheduleDayTypes.match') : t('profile.scheduleDayTypes.rest')}
+                             </Text>
+                           </TouchableOpacity>
+                         </View>
+                       );
+                    })}
+                  </View>
+                )}
+              </View>
+
               <View className="flex-row gap-4 mt-6">
                 <View className="flex-1">
-                  <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Days / Week</Text>
-                  <View className="bg-slate-100 rounded-2xl p-1.5 border border-slate-200">
-                    {[2, 3, 4].map(d => (
-                       <TouchableOpacity key={d} onPress={() => setData({...data, daysPerWeek: d})} className={`py-3 rounded-xl transition-colors ${data.daysPerWeek === d ? 'bg-white shadow-sm border border-slate-200' : ''}`}>
-                          <Text className={`text-center font-bold ${data.daysPerWeek === d ? 'text-brand-blue' : 'text-slate-400'}`}>{d} Days</Text>
-                       </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Time / Session</Text>
+                  <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{t('profile.timePerSession')}</Text>
                   <View className="bg-slate-100 rounded-2xl p-1.5 border border-slate-200">
                     {[30, 45, 60].map(m => (
                        <TouchableOpacity key={m} onPress={() => setData({...data, timePerDay: m})} className={`py-3 rounded-xl transition-colors ${data.timePerDay === m ? 'bg-white shadow-sm border border-slate-200' : ''}`}>

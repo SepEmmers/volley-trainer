@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Dimensions, Modal } from 'react-native';
 import { useAppStore } from '../../src/store/useAppStore';
-import { CheckCircle2, ChevronRight, Activity, Zap, Minus, Plus, Dumbbell, Shield, ArrowUpRight, HelpCircle } from 'lucide-react-native';
+import { CheckCircle2, ChevronRight, Activity, Zap, Minus, Plus, Dumbbell, Shield, ArrowUpRight, HelpCircle, RefreshCw, Trophy, Sparkles, X, Volume2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EXERCISE_CATEGORIES } from '../../src/engine/exercises';
+import { EXERCISES, EXERCISE_CATEGORIES } from '../../src/engine/exercises';
 import { JumpSvg, SquatSvg, ShoulderSvg, CoreSvg, GenericAthleteSvg } from '../../src/components/AnimatedExerciseSvgs';
 import ExerciseDetailModal from '../../src/components/ExerciseDetailModal';
 import RoutineBlock from '../../src/components/RoutineBlock';
@@ -12,6 +12,26 @@ import { useTranslation } from '../../src/i18n/useTranslation';
 import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
+
+const playCompletionChime = () => {
+  try {
+    if (typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch (e) {}
+};
 
 export default function WorkoutScreen() {
   const { profile, stats, workoutPhases, finishWorkout, weightLogs, workoutHistory } = useAppStore();
@@ -22,15 +42,19 @@ export default function WorkoutScreen() {
   const todayYmd = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const todayDone = (workoutHistory || []).includes(todayYmd);
 
+  const [sessionStartTime] = useState<number>(Date.now());
   const [extraMode, setExtraMode] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [swapTarget, setSwapTarget] = useState<any>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   
   const currentPhase = workoutPhases.find((p: any) => p.id === stats.currentPhaseId);
   const phaseExercises = currentPhase?.exercises || [];
 
-  const [completedSets, setCompletedSets] = useState<Record<string, number[]>>({}); // ex.id -> [1, 2, 3]
+  const [completedSets, setCompletedSets] = useState<Record<string, number[]>>({});
   const [currentWeights, setCurrentWeights] = useState<Record<string, number | string>>({});
   const [calibrated, setCalibrated] = useState<string[]>([]);
+  const [painRatings, setPainRatings] = useState<Record<string, number>>({});
 
   const [activeRest, setActiveRest] = useState<number | null>(null);
   const [restOverlayVisible, setRestOverlayVisible] = useState(false);
@@ -38,16 +62,15 @@ export default function WorkoutScreen() {
 
   const isPhaseA = currentPhase?.id === 'A';
   const isPhaseB = currentPhase?.id === 'B';
-  const phaseColor = isPhaseA ? '#FF5A00' : isPhaseB ? '#1E3A8A' : '#FBBF24'; // brand-orange, brand-blue, brand-yellow
+  const phaseColor = isPhaseA ? '#FF5A00' : isPhaseB ? '#1E3A8A' : '#FBBF24';
 
-  // Prefill weights based on history
   useEffect(() => {
     const prefilled: Record<string, number | string> = {};
     phaseExercises.forEach((ex: any) => {
       if (ex.trackable && weightLogs[ex.id]?.length > 0) {
         prefilled[ex.id] = weightLogs[ex.id][weightLogs[ex.id].length - 1].weight;
       } else {
-        prefilled[ex.id] = 0; // default 0 implies it needs initial testing
+        prefilled[ex.id] = 0;
       }
     });
 
@@ -66,10 +89,8 @@ export default function WorkoutScreen() {
     const current = completedSets[exId] || [];
     const isDone = current.includes(setIndex);
     
-    // If it's a timed exercise and it's not done, start the active ISO timer instead of instantly marking complete
     if (isTimed && !isDone) {
       if (activeIsoTimer?.exId === exId && activeIsoTimer?.setNum === setIndex) {
-         // Stop timer manually
          setActiveIsoTimer(null);
       } else {
          setActiveIsoTimer({ exId, setNum: setIndex, timeLeft: duration });
@@ -82,7 +103,6 @@ export default function WorkoutScreen() {
       newSets = current.filter(i => i !== setIndex);
     } else {
       newSets = [...current, setIndex];
-      // Trigger Rest Timer
       setActiveRest(60); 
       setRestOverlayVisible(true);
     }
@@ -90,12 +110,17 @@ export default function WorkoutScreen() {
     setCompletedSets({ ...completedSets, [exId]: newSets });
   };
 
-  // Rest Timer countdown logic
+  // Rest Timer countdown
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (activeRest !== null && activeRest > 0 && restOverlayVisible) {
       interval = setInterval(() => {
-        setActiveRest(prev => (prev !== null && prev > 0 ? prev - 1 : 0));
+        setActiveRest(prev => {
+          if (prev !== null && prev === 1) {
+            playCompletionChime();
+          }
+          return (prev !== null && prev > 0 ? prev - 1 : 0);
+        });
       }, 1000);
     } else if (activeRest === 0) {
       setRestOverlayVisible(false);
@@ -103,7 +128,7 @@ export default function WorkoutScreen() {
     return () => clearInterval(interval);
   }, [activeRest, restOverlayVisible]);
 
-  // Active ISO Timer logic
+  // Active ISO Timer
   useEffect(() => {
     let isoInterval: ReturnType<typeof setInterval>;
     if (activeIsoTimer && activeIsoTimer.timeLeft > 0) {
@@ -111,14 +136,11 @@ export default function WorkoutScreen() {
         setActiveIsoTimer(prev => {
           if (!prev) return null;
           if (prev.timeLeft <= 1) {
-             // Timer finished! Mark set as complete
+             playCompletionChime();
              const current = completedSets[prev.exId] || [];
              setCompletedSets({ ...completedSets, [prev.exId]: [...current, prev.setNum] });
-             
-             // Trigger Rest Timer
              setActiveRest(60); 
              setRestOverlayVisible(true);
-             
              return null;
           }
           return { ...prev, timeLeft: prev.timeLeft - 1 };
@@ -127,12 +149,6 @@ export default function WorkoutScreen() {
     }
     return () => clearInterval(isoInterval);
   }, [activeIsoTimer, completedSets]);
-
-  const handleFinish = () => {
-    finishWorkout(currentWeights);
-    setCompletedSets({});
-    router.push('/(tabs)/telemetry');
-  };
 
   const adjustWeight = (id: string, amount: number) => {
     setCurrentWeights(prev => ({
@@ -149,6 +165,26 @@ export default function WorkoutScreen() {
   const totalExercisesDone = phaseExercises.filter(isExerciseComplete).length;
   const allDone = totalExercisesDone === phaseExercises.length && phaseExercises.length > 0;
 
+  // Exercise Swap logic
+  const handleSwap = (oldExId: string, newEx: any) => {
+    const updatedExercises = phaseExercises.map((e: any) => e.id === oldExId ? newEx : e);
+    const updatedPhases = workoutPhases.map((p: any) => p.id === currentPhase.id ? { ...p, exercises: updatedExercises } : p);
+    useAppStore.setState({ workoutPhases: updatedPhases });
+    setSwapTarget(null);
+  };
+
+  const handleFinish = () => {
+    if (!allDone) return;
+    setShowCelebration(true);
+  };
+
+  const confirmFinish = () => {
+    finishWorkout(currentWeights);
+    setCompletedSets({});
+    setShowCelebration(false);
+    router.push('/(tabs)/telemetry');
+  };
+
   if (phaseExercises.length === 0) {
     return (
       <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center p-6">
@@ -159,6 +195,9 @@ export default function WorkoutScreen() {
       </SafeAreaView>
     );
   }
+
+  // Get replacement options for swap
+  const swapOptions = swapTarget ? Object.values(EXERCISES).filter(e => e.id !== swapTarget.id && (e.category === swapTarget.category || e.category === 'knee_revalidation' || e.category === 'shoulder_prehab')).slice(0, 6) : [];
 
   return (
     <SafeAreaView className="flex-1 bg-brand-white">
@@ -218,10 +257,8 @@ export default function WorkoutScreen() {
           </View>
         )}
 
-        {/* Hide workout when done (unless in extra mode) */}
         {(!todayDone || extraMode) && (
           <>
-
         {/* Warmup Block */}
         <RoutineBlock
           title={t('routine.warmup')}
@@ -245,14 +282,14 @@ export default function WorkoutScreen() {
           let textColor = 'text-brand-blue';
           let iconColor = '#1E3A8A';
 
-           if (ex.category === 'power') {
+           if (ex.category === 'knee_revalidation') {
+             iconBg = 'bg-indigo-500/10';
+             textColor = 'text-indigo-600';
+             iconColor = '#6366F1';
+           } else if (ex.category === 'power' || ex.category === 'vertical_jump') {
              iconBg = 'bg-brand-orange/10';
              textColor = 'text-brand-orange';
              iconColor = '#FF5A00';
-           } else if (ex.category.includes('injury')) {
-             iconBg = 'bg-emerald-500/10';
-             textColor = 'text-emerald-500';
-             iconColor = '#10B981';
            }
 
           return (
@@ -261,13 +298,20 @@ export default function WorkoutScreen() {
               {/* Exercise Header & Details */}
               <View className="p-5 flex-row items-center gap-4">
                 <View className="flex-1">
-                  <View className="flex-row gap-2 items-center mb-2">
+                  <View className="flex-row gap-2 items-center justify-between mb-2">
                     <View className={`px-2.5 py-1 flex-row items-center gap-1.5 rounded-lg ${iconBg}`}>
                        <IconComponent size={16} color={iconColor} />
-                       <Text className={`text-[10px] font-bold uppercase tracking-widest ${textColor}`}>{ex.category.replace('_', ' ')}</Text>
+                       <Text className={`text-[10px] font-bold uppercase tracking-widest ${textColor}`}>{EXERCISE_CATEGORIES[ex.category as keyof typeof EXERCISE_CATEGORIES]?.label || ex.category.replace('_', ' ')}</Text>
                     </View>
+
+                    {/* Exercise Swap Trigger */}
+                    <TouchableOpacity onPress={() => setSwapTarget(ex)} className="flex-row items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
+                      <RefreshCw size={12} color="#64748b" />
+                      <Text className="text-[10px] font-bold text-slate-500 uppercase">{language === 'nl' ? 'Wissel' : 'Swap'}</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Text className={`font-bold text-xl leading-tight mb-2 ${isDone ? 'text-slate-400 line-through' : 'text-brand-dark'}`}>{t(`exercises.${ex.id}.name`) !== `exercises.${ex.id}.name` ? t(`exercises.${ex.id}.name`) : ex.name}</Text>
+
+                  <Text className={`font-bold text-xl leading-tight mb-2 ${isDone ? 'text-slate-400 line-through' : 'text-brand-dark'}`}>{ex.name}</Text>
                   
                   <View className="flex-row items-center gap-3 mt-1">
                     <View className="bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl">
@@ -282,7 +326,6 @@ export default function WorkoutScreen() {
                 </View>
               </View>
 
-              {/* ? Help Button */}
               <TouchableOpacity
                 onPress={() => setSelectedExercise(ex)}
                 className="p-2 bg-slate-50 border border-slate-200 rounded-full hover:bg-slate-100"
@@ -296,11 +339,8 @@ export default function WorkoutScreen() {
                 {Array.from({ length: totalDynamicSets }).map((_, idx) => {
                   const setNum = idx + 1;
                   const setCompleted = (completedSets[ex.id] || []).includes(setNum);
-                  
-                  // Detect isometric/timed from name or static duration setting
-                  const isTimed = ex.name.toLowerCase().includes('wall sit') || ex.name.toLowerCase().includes('plank') || !!ex.duration;
-                  const duration = ex.duration || parseInt(ex.reps) || 30; // fallback parsing
-
+                  const isTimed = ex.name.toLowerCase().includes('sit') || ex.name.toLowerCase().includes('plank') || ex.name.toLowerCase().includes('hold') || !!ex.duration;
+                  const duration = ex.duration || parseInt(ex.reps) || 30;
                   const isActiveTimer = activeIsoTimer?.exId === ex.id && activeIsoTimer?.setNum === setNum;
 
                   return (
@@ -327,7 +367,42 @@ export default function WorkoutScreen() {
                 })}
               </View>
 
-              {/* Weight Tracking & Calibration */}
+              {/* Knee Comfort & Pain Rating Scale */}
+              {ex.category === 'knee_revalidation' && (
+                <View className="px-5 pb-4 border-t border-slate-100 pt-3">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{language === 'nl' ? 'Knie-Pijn / Discomfort (0 - 10)' : 'Knee Discomfort Rating (0 - 10)'}</Text>
+                    <Text className="font-extrabold text-xs text-indigo-600">{painRatings[ex.id] !== undefined ? `${painRatings[ex.id]}/10` : (language === 'nl' ? 'Niet beoordeeld' : 'Not rated')}</Text>
+                  </View>
+                  <View className="flex-row justify-between gap-1">
+                    {[0, 2, 4, 6, 8, 10].map(rating => (
+                      <TouchableOpacity
+                        key={rating}
+                        onPress={() => setPainRatings({ ...painRatings, [ex.id]: rating })}
+                        className={`flex-1 py-1.5 rounded-lg items-center border ${
+                          painRatings[ex.id] === rating 
+                            ? rating > 3 ? 'bg-red-500 border-red-600 text-white' : 'bg-indigo-600 border-indigo-700 text-white' 
+                            : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <Text className={`font-bold text-xs ${painRatings[ex.id] === rating ? 'text-white' : 'text-slate-500'}`}>{rating}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  {painRatings[ex.id] !== undefined && painRatings[ex.id] > 3 && (
+                    <View className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex-row items-center gap-2">
+                      <Shield color="#d97706" size={16} />
+                      <Text className="text-amber-800 text-xs font-semibold flex-1">
+                        {language === 'nl' 
+                          ? '💡 Pijn > 3: Verminder de buigingshoek (bijv. 60° → 30°) of stap over op een rustigere isometrische hold.' 
+                          : '💡 Pain > 3: Reduce knee flexion angle (e.g. 60° → 30°) or switch to a lighter isometric hold.'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Weight Tracking */}
               {ex.trackable && !isDone && (
                 <View className="border-t border-slate-100 bg-slate-50/50 p-5 rounded-b-3xl">
                    {!calibrated.includes(ex.id) ? (
@@ -352,12 +427,6 @@ export default function WorkoutScreen() {
                           style={{ backgroundColor: currentWeights[ex.id] ? '#FF5A00' : '#E2E8F0', borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}
                         >
                           <Text style={{ color: currentWeights[ex.id] ? '#ffffff' : '#94A3B8', fontWeight: '900', fontSize: 16 }}>{t('workout.setBaseline')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setCalibrated([...calibrated, ex.id])}
-                          style={{ borderRadius: 14, paddingVertical: 12, alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' }}
-                        >
-                          <Text style={{ color: '#64748B', fontWeight: '700', fontSize: 14 }}>{t('workout.skipCalibrate')}</Text>
                         </TouchableOpacity>
                       </View>
                    ) : (
@@ -388,30 +457,19 @@ export default function WorkoutScreen() {
           );
         })}
 
-        {/* Cooldown Block */}
-        <RoutineBlock
-          title={t('routine.cooldown')}
-          subtitle={t('routine.optional')}
-          items={COOLDOWN_ROUTINE}
-          category="cooldown"
-        />
-
-        {/* Stretching Block */}
-        <RoutineBlock
-          title={t('routine.stretching')}
-          subtitle={t('routine.optional')}
-          items={STRETCHING_ROUTINE}
-          category="stretching"
-        />
+        <RoutineBlock title={t('routine.cooldown')} subtitle={t('routine.optional')} items={COOLDOWN_ROUTINE} category="cooldown" />
+        <RoutineBlock title={t('routine.stretching')} subtitle={t('routine.optional')} items={STRETCHING_ROUTINE} category="stretching" />
           </>
         )}
 
-        {/* Finish Button — always visible */}
+        {/* Finish Button */}
         <TouchableOpacity
+          disabled={!allDone}
           onPress={handleFinish}
           style={{
             width: '100%',
             backgroundColor: allDone ? '#FF5A00' : '#E2E8F0',
+            opacity: allDone ? 1 : 0.6,
             borderRadius: 18,
             paddingVertical: 20,
             flexDirection: 'row',
@@ -420,39 +478,105 @@ export default function WorkoutScreen() {
             gap: 8,
             marginTop: 16,
             marginBottom: 32,
-            shadowColor: allDone ? '#FF5A00' : 'transparent',
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: allDone ? 0.35 : 0,
-            shadowRadius: 14,
-            elevation: allDone ? 8 : 0,
           }}
         >
           <Text style={{ color: allDone ? '#ffffff' : '#94A3B8', fontWeight: '900', fontSize: 18, letterSpacing: 0.3 }}>
-            {allDone ? t('workout.returnLocker') : (language === 'nl' ? 'Toch Voltooien' : 'Finish Anyway')}
+            {t('workout.returnLocker')}
           </Text>
           <ChevronRight color={allDone ? '#ffffff' : '#94A3B8'} size={22} strokeWidth={3} />
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Floating Rest Timer Overlay */}
+      {/* Floating Rest Timer Overlay with Controls */}
       {restOverlayVisible && activeRest !== null && (
-        <View className="absolute bottom-24 self-center bg-brand-dark px-6 py-4 rounded-full shadow-2xl flex-row items-center justify-between shadow-brand-dark/50" style={{ width: width * 0.85 }}>
+        <View className="absolute bottom-24 self-center bg-brand-dark px-6 py-4 rounded-3xl shadow-2xl flex-row items-center justify-between shadow-brand-dark/50" style={{ width: width * 0.9 }}>
            <View className="flex-row items-center gap-3">
              <Activity color="#FF5A00" size={24} />
              <View>
-                <Text className="text-white font-black text-xl leading-tight">Rest Session</Text>
-                <Text className="text-slate-400 font-bold text-xs uppercase tracking-widest">Recovery Phase</Text>
+                <Text className="text-white font-black text-lg leading-tight">Rest Period</Text>
+                <Text className="text-slate-400 font-bold text-xs uppercase">Recovery Phase</Text>
              </View>
            </View>
-           <View className="bg-white/10 px-4 py-2 rounded-xl border border-white/20">
-             <Text className="text-brand-orange font-black text-2xl">{activeRest}s</Text>
+
+           <View className="flex-row items-center gap-2">
+             <TouchableOpacity onPress={() => setActiveRest(r => Math.max(0, (r || 0) - 15))} className="px-2.5 py-1.5 bg-white/10 rounded-lg">
+               <Text className="text-white font-bold text-xs">-15s</Text>
+             </TouchableOpacity>
+             <View className="bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+               <Text className="text-brand-orange font-black text-xl">{activeRest}s</Text>
+             </View>
+             <TouchableOpacity onPress={() => setActiveRest(r => (r || 0) + 15)} className="px-2.5 py-1.5 bg-white/10 rounded-lg">
+               <Text className="text-white font-bold text-xs">+15s</Text>
+             </TouchableOpacity>
+             <TouchableOpacity onPress={() => setRestOverlayVisible(false)} className="px-2.5 py-1.5 bg-brand-orange rounded-lg ml-1">
+               <Text className="text-white font-bold text-xs">{language === 'nl' ? 'Skip' : 'Skip'}</Text>
+             </TouchableOpacity>
            </View>
-           <TouchableOpacity onPress={() => setRestOverlayVisible(false)} className="absolute -top-3 -right-3 bg-slate-800 rounded-full p-2 border border-slate-700">
-             <CheckCircle2 color="#94a3b8" size={16} />
-           </TouchableOpacity>
         </View>
       )}
-      {/* Exercise Detail Modal */}
+
+      {/* Exercise Swap Modal */}
+      <Modal visible={!!swapTarget} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-[36px] p-6 max-h-[80%]">
+            <View className="flex-row justify-between items-center mb-4">
+              <View>
+                <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">{language === 'nl' ? 'Oefening Wisselen' : 'Swap Exercise'}</Text>
+                <Text className="text-xl font-black text-brand-dark">{swapTarget?.name}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSwapTarget(null)} className="p-2 bg-slate-100 rounded-full">
+                <X size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+            <Text className="text-slate-500 text-sm mb-4 font-medium">{language === 'nl' ? 'Kies een alternatieve oefening met vergelijkbare spiergroep focus:' : 'Choose a target-equivalent alternative exercise:'}</Text>
+            <ScrollView showsVerticalScrollIndicator={false} className="space-y-3">
+              {swapOptions.map((opt: any) => (
+                <TouchableOpacity key={opt.id} onPress={() => handleSwap(swapTarget.id, opt)} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex-row items-center justify-between mb-2">
+                  <View className="flex-1 mr-3">
+                    <Text className="font-bold text-brand-dark text-base">{opt.name}</Text>
+                    <Text className="text-slate-400 text-xs mt-0.5">{opt.purpose}</Text>
+                  </View>
+                  <View className="bg-brand-orange/10 px-3 py-1.5 rounded-xl">
+                    <Text className="text-brand-orange font-bold text-xs">{language === 'nl' ? 'Selecteer' : 'Select'}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Celebration Summary Modal */}
+      <Modal visible={showCelebration} transparent animationType="fade">
+        <View className="flex-1 bg-black/60 items-center justify-center p-6">
+          <View className="bg-white w-full max-w-md rounded-[36px] p-8 items-center border border-slate-100 shadow-2xl">
+            <View className="w-20 h-20 bg-brand-orange/10 rounded-full items-center justify-center mb-4">
+              <Trophy size={44} color="#FF5A00" />
+            </View>
+
+            <Text className="text-3xl font-black text-brand-dark text-center mb-1">{language === 'nl' ? 'Sessie Voltooid!' : 'Session Complete!'}</Text>
+            <Text className="text-slate-500 font-medium text-center text-sm mb-6">{language === 'nl' ? 'Super werk op het veld! Je knieën en spieren worden elke dag sterker.' : 'Awesome work on the court! Your knees and muscles get stronger every day.'}</Text>
+
+            <View className="flex-row gap-3 w-full mb-6">
+              <View className="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-2xl items-center">
+                <Sparkles size={20} color="#FF5A00" />
+                <Text className="text-2xl font-black text-brand-dark mt-1">+{useAppStore.getState().mode === 'fun' ? 100 : 50}</Text>
+                <Text className="text-[10px] font-bold text-slate-400 uppercase">Spikes</Text>
+              </View>
+              <View className="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-2xl items-center">
+                <Zap size={20} color="#1E3A8A" />
+                <Text className="text-2xl font-black text-brand-dark mt-1">{stats.streak + 1}</Text>
+                <Text className="text-[10px] font-bold text-slate-400 uppercase">Streak</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity onPress={confirmFinish} className="w-full bg-brand-orange py-4 rounded-2xl items-center justify-center shadow-lg shadow-brand-orange/30">
+              <Text className="text-white font-bold text-lg">{language === 'nl' ? 'Naar Statistieken' : 'View Performance'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <ExerciseDetailModal
         exercise={selectedExercise}
         visible={!!selectedExercise}
@@ -462,3 +586,4 @@ export default function WorkoutScreen() {
     </SafeAreaView>
   );
 }
+

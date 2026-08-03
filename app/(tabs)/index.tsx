@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Easing, Platform } from 'react-native';
 import { useAppStore } from '../../src/store/useAppStore';
+import { computeAutoSchedule } from '../../src/engine/algorithm';
 import { Trophy, Activity, Calendar, Clock, Play, RefreshCw, BarChart3, Medal, ArrowUpRight, HeartPulse, Zap } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -47,7 +48,7 @@ export default function DashboardScreen() {
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [showInstallSteps, setShowInstallSteps] = useState(false);
 
-  const currentPhase = workoutPhases.find((p: any) => p.id === stats.currentPhaseId);
+  const currentPhase = workoutPhases.find((p: { id: string; exercises?: any[]; title?: string }) => p.id === stats.currentPhaseId);
 
   const injuryCount = profile.history?.length || 0;
   const mobility = 95 - (injuryCount * 15);
@@ -58,14 +59,24 @@ export default function DashboardScreen() {
   const year = today.getFullYear();
   const month = today.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay();
+  const firstDayStr = new Date(year, month, 1).getDay();
+  const firstDay = firstDayStr === 0 ? 6 : firstDayStr - 1; // 0 for Monday, 6 for Sunday
   
   const days = [];
   for (let i = 0; i < firstDay; i++) days.push(null);
   for (let i = 1; i <= daysInMonth; i++) days.push(i);
 
+  // Compute active streak days
+  const sortedHistory = [...(workoutHistory || [])].sort();
+  const streakDays = stats.streak > 0 ? sortedHistory.slice(-stats.streak) : [];
+
+  // Determine standard schedule mapping
+  const activeSchedule = profile.schedule === 'auto' || !profile.schedule 
+    ? computeAutoSchedule(profile.daysPerWeek || 3, profile.matchDays || []) 
+    : profile.schedule;
+
   // Dynamic values based on goal
-  const GoalIcon = profile.goal === 'vertical' ? ArrowUpRight : profile.goal === 'injury' ? Activity : Trophy;
+  const GoalIcon = profile.goal === 'knee_rehab' ? HeartPulse : profile.goal === 'vertical' ? ArrowUpRight : profile.goal === 'injury' ? Activity : Trophy;
   const goalLabel = t(`dashboard.goalLabels.${profile.goal || 'vertical'}`);
   const goalColor = '#FF5A00';
   const goalBg = 'bg-brand-orange/10';
@@ -242,33 +253,50 @@ export default function DashboardScreen() {
                 const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                 const isWorkout = (workoutHistory || []).includes(dStr);
+                const isStreakDay = stats.streak > 0 && streakDays.includes(dStr);
+                
+                const dateObj = new Date(year, month, d);
+                let dayNum = dateObj.getDay();
+                if (dayNum === 0) dayNum = 7;
+                const expectedDay = typeof activeSchedule === 'object' ? activeSchedule[dayNum.toString()] : null;
+
                 return (
-                  <View key={d} style={{ width: `${100/7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', padding: 2 }}>
+                  <View key={d} style={{ width: `${100/7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 2, paddingBottom: 6 }}>
                     <View style={{
-                      width: '80%', aspectRatio: 1, borderRadius: 100, alignItems: 'center', justifyContent: 'center',
-                      backgroundColor: isToday ? '#1E3A8A' : isWorkout ? '#FFF7F0' : 'transparent',
-                      borderWidth: isToday ? 0 : isWorkout ? 1.5 : 0,
-                      borderColor: isWorkout && !isToday ? '#FF5A00' : 'transparent',
+                      width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
+                      backgroundColor: isToday ? '#1E3A8A' : isWorkout ? (isStreakDay ? '#FFEDD5' : '#F1F5F9') : 'transparent',
+                      borderWidth: isWorkout ? 1.5 : 0,
+                      borderColor: isWorkout ? (isStreakDay ? '#FF5A00' : '#CBD5E1') : 'transparent',
                     }}>
-                      <Text style={{ fontSize: 13, fontWeight: isToday || isWorkout ? '900' : '500', color: isToday ? '#ffffff' : isWorkout ? '#FF5A00' : '#64748B' }}>{d}</Text>
+                       <Text style={{ fontSize: 13, fontWeight: isToday || isWorkout ? '900' : '500', color: isToday ? '#ffffff' : isWorkout ? (isStreakDay ? '#FF5A00' : '#64748B') : '#94A3B8' }}>{d}</Text>
+                    </View>
+                    
+                    {/* Schedule Indicators */}
+                    <View style={{ flexDirection: 'row', gap: 3, marginTop: 4, height: 4 }}>
+                       {expectedDay === 'workout' && !isWorkout && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#FF5A00', opacity: 0.5 }} />}
+                       {expectedDay === 'match' && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#3B82F6' }} />}
                     </View>
                   </View>
                 );
               })}
             </View>
             {/* Legend */}
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 12, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#1E3A8A' }} />
                 <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>{language === 'nl' ? 'Vandaag' : 'Today'}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#FFF7F0', borderWidth: 1.5, borderColor: '#FF5A00' }} />
-                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>{language === 'nl' ? 'Getraind' : 'Trained'}</Text>
+                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#FFEDD5', borderWidth: 1.5, borderColor: '#FF5A00' }} />
+                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Streak</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Zap size={12} color="#FF5A00" />
-                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>{workoutHistory?.length || 0} {language === 'nl' ? 'sessies' : 'sessions'}</Text>
+                <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#FF5A00', opacity: 0.5 }} />
+                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>{language === 'nl' ? 'Gepland' : 'Planned'}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#3B82F6' }} />
+                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>Match</Text>
               </View>
             </View>
           </View>

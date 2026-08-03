@@ -7,6 +7,7 @@ export const RARITIES = {
   rare:       { id: 'rare',       label: { nl: 'Zeldzaam',     en: 'Rare'        }, color: '#3B82F6', glow: '#93C5FD', weight: 25 },
   epic:       { id: 'epic',       label: { nl: 'Episch',       en: 'Epic'        }, color: '#8B5CF6', glow: '#C4B5FD', weight: 12 },
   legendary:  { id: 'legendary',  label: { nl: 'Legendarisch', en: 'Legendary'   }, color: '#F59E0B', glow: '#FCD34D', weight: 3  },
+  mythic:     { id: 'mythic',     label: { nl: 'Mythisch',     en: 'Mythic'      }, color: '#EC4899', glow: '#FBCFE8', weight: 0  }, // Only via streaks
 };
 
 // ─── PLAYERS ──────────────────────────────────────────────────────────────────
@@ -27,6 +28,8 @@ export const PLAYER_ITEMS = [
   // Legendary
   { id: 'p_legend_legendary',   category: 'player', rarity: 'legendary', emoji: '👑', name: { nl: 'De Legende',    en: 'The Legend'        }, desc: { nl: 'Onsterfelijke volleybalspeler', en: 'Immortal volleyball player' }, number: 99 },
   { id: 'p_mvp_legendary',      category: 'player', rarity: 'legendary', emoji: '💎', name: { nl: 'De MVP',         en: 'The MVP'           }, desc: { nl: 'Meest Waardevolle Speler', en: 'Most Valuable Player' }, number: 77 },
+  // Mythic
+  { id: 'p_god_mythic',         category: 'player', rarity: 'mythic',    emoji: '🔱', name: { nl: 'Volleybal God', en: 'Volleyball God'    }, desc: { nl: 'Een mythe op het veld',   en: 'A myth on the court' }, number: 0 },
 ];
 
 // ─── BALL SKINS ────────────────────────────────────────────────────────────────
@@ -44,6 +47,8 @@ export const BALL_ITEMS = [
   // Legendary
   { id: 'ball_gold',            category: 'ball', rarity: 'legendary', emoji: '✨', name: { nl: 'Gouden Bal',        en: 'Golden Ball'       }, desc: { nl: 'Puur goud, puur klasse', en: 'Pure gold, pure class' } },
   { id: 'ball_rainbow',         category: 'ball', rarity: 'legendary', emoji: '🌈', name: { nl: 'Regenboogbal',      en: 'Rainbow Ball'      }, desc: { nl: 'Elke kleur van de zege', en: 'Every color of victory' } },
+  // Mythic
+  { id: 'ball_dragon_mythic',   category: 'ball', rarity: 'mythic',    emoji: '🐉', name: { nl: 'Drakenbal',         en: 'Dragon Ball'       }, desc: { nl: 'Ontwaakt de draak',       en: 'Awakens the dragon' } },
 ];
 
 // ─── COURT SKINS ───────────────────────────────────────────────────────────────
@@ -60,6 +65,8 @@ export const COURT_ITEMS = [
   // Legendary
   { id: 'court_olympic',        category: 'court', rarity: 'legendary', emoji: '🏅', name: { nl: 'Olympisch Veld',     en: 'Olympic Court'     }, desc: { nl: 'Spelen voor het goud', en: 'Playing for the gold' } },
   { id: 'court_holographic',    category: 'court', rarity: 'legendary', emoji: '🔮', name: { nl: 'Holografisch Veld',  en: 'Holographic Court' }, desc: { nl: 'Echt futuristisch', en: 'Truly futuristic' } },
+  // Mythic
+  { id: 'court_ethereal_mythic',category: 'court', rarity: 'mythic',    emoji: '🌀', name: { nl: 'Etherisch Veld',   en: 'Ethereal Court'    }, desc: { nl: 'Voorbij tijd en ruimte', en: 'Beyond time and space' } },
 ];
 
 // ─── HALL SKINS ────────────────────────────────────────────────────────────────
@@ -76,6 +83,8 @@ export const HALL_ITEMS = [
   // Legendary
   { id: 'hall_olympic',         category: 'hall', rarity: 'legendary', emoji: '🎖️', name: { nl: 'Olympisch Stadion',   en: 'Olympic Stadium'   }, desc: { nl: 'Elke match voelt als de finale', en: 'Every match feels like the final' } },
   { id: 'hall_space',           category: 'hall', rarity: 'legendary', emoji: '🚀', name: { nl: 'Ruimtestation',        en: 'Space Station'     }, desc: { nl: 'Zero-gravity volleybal', en: 'Zero-gravity volleyball' } },
+  // Mythic
+  { id: 'hall_temple_mythic',   category: 'hall', rarity: 'mythic',    emoji: '⛩️', name: { nl: 'Oude Tempel',       en: 'Ancient Temple'    }, desc: { nl: 'De geboorteplaats van de sport', en: 'The birthplace of the sport' } },
 ];
 
 // ─── JERSEY SKINS ──────────────────────────────────────────────────────────────
@@ -93,6 +102,8 @@ export const JERSEY_ITEMS = [
   // Legendary
   { id: 'jersey_gold',          category: 'jersey', rarity: 'legendary',emoji: '✨', name: { nl: 'Goud Tenue',          en: 'Gold Kit'          }, desc: { nl: 'Winnaar op het oog',    en: 'Winner at first sight' } },
   { id: 'jersey_rainbow',       category: 'jersey', rarity: 'legendary',emoji: '🌈', name: { nl: 'Regenboog Tenue',     en: 'Rainbow Kit'       }, desc: { nl: 'Alle kleuren van de overwinning', en: 'All the colors of victory' } },
+  // Mythic
+  { id: 'jersey_diamond_mythic',category: 'jersey', rarity: 'mythic',   emoji: '💎', name: { nl: 'Diamant Tenue',      en: 'Diamond Kit'       }, desc: { nl: 'Onbreekbare wil',         en: 'Unbreakable will' } },
 ];
 
 // ─── Combined Catalog ──────────────────────────────────────────────────────────

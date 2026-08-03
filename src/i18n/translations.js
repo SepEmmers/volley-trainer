@@ -24,15 +24,16 @@ export const translations = {
       sessions: 'Sessies',
       movements: 'Bewegingen',
       mobilityLabel: 'Mobiliteit',
-      wellnessLabel: 'Conditie Leeftijd',
+      wellnessLabel: 'Fysieke Leeftijd',
       aiCoach: 'AI Coach Analyse',
       activityLog: 'Activiteitenlog',
       daysPerWeek: (d) => `${d}d/wk`,
       minutesPerDay: (m) => `${m}m`,
       goalLabels: {
         vertical: 'Max Spronghoogte',
+        knee_rehab: 'Knieversterking & Revalidatie',
         injury: 'Blessurepreventie',
-        agility: 'Veldbewegelijkheid',
+        agility: 'Veldbeweeglijkheid',
       },
       aiMessages: {
         novice: 'Als beginner, focus op motorische controle en peesoefeningen. Haast je niet met de herhalingen.',
@@ -76,7 +77,7 @@ export const translations = {
       trainingFocusOptions: {
         vertical: 'Max Spronghoogte',
         injury: 'Blessurepreventie',
-        agility: 'Veldbeweglichheid',
+        agility: 'Veldbeweeglijkheid',
       },
       experience: 'Trainingservaring',
       levels: {
@@ -85,6 +86,18 @@ export const translations = {
         advanced: 'Gevorderd',
       },
       schedule: 'Trainingsschema',
+      scheduleSelect: 'Selecteer je Dagen',
+      workoutsPerWeek: 'Trainingsdagen / Week',
+      matchDaysIntro: 'Volleybal / Match Dagen',
+      days: 'Dagen',
+      scheduleAuto: 'Automatisch (Aanbevolen)',
+      scheduleManual: 'Specifieke Dagen',
+      scheduleDayTypes: {
+        workout: 'Krachttraining',
+        rest: 'Rustdag',
+        match: 'Match / Volleybal',
+      },
+      scheduleDayLabels: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
       daysPerWeek: 'Dagen / Week',
       timePerSession: 'Tijd / Sessie',
       language: 'Taal',
@@ -113,7 +126,7 @@ export const translations = {
       step2Title: 'Voer je\nBasismetrieken in.',
       step3Title: 'Stel je\nTrainingsparameters in.',
       displayNameLabel: 'Weergavenaam / Alias',
-      displayNamePlaceholder: 'bijv. Volleybal Fenomeen',
+      displayNamePlaceloopder: 'bijv. Volleybal Fenomeen',
       unitsLabel: 'Eenheidssysteem',
       equipmentLabel: 'Beschikbare Uitrusting',
       bodyweightOnly: 'Alleen Lichaamsgewicht',
@@ -128,7 +141,7 @@ export const translations = {
       focusOptions: {
         vertical: { label: 'Max Spronghoogte', desc: 'Focus op explosiviteit en hoogte' },
         injury: { label: 'Blessurepreventie', desc: 'Gewrichtsbestendigheid en levensduurt' },
-        agility: { label: 'Veldbewegelijkheid', desc: 'Laterale snelheid en reactie' },
+        agility: { label: 'Veldbeweeglijkheid', desc: 'Laterale snelheid en reactie' },
       },
     },
 
@@ -145,7 +158,7 @@ export const translations = {
 
     // Routines (Warmup / Cooldown / Stretching)
     routine: {
-      warmup: 'Warmoefeningen',
+      warmup: 'Opwarming',
       cooldown: 'Afkoeling & Stretching',
       stretching: 'Mobilisatie',
       optional: 'Optioneel',
@@ -156,7 +169,7 @@ export const translations = {
     categories: {
       vertical_jump: 'Spronghoogte',
       attacking_mechanics: 'Aanvalskracht',
-      lateral_agility: 'Laterale Behendigheid',
+      lateral_agility: 'Laterale Wendbaarheid',
       shoulder_prehab: 'Schouder Preventie',
       knee_ankle_stability: 'Knie & Enkel Stabiliteit',
     },
@@ -165,7 +178,7 @@ export const translations = {
     exercises: {
       goblet_squat: {
         name: 'Dumbbell Goblet Squat',
-        purpose: 'Aufbau van basiskracht in de benen, betere heupbeweeglijkheid en correcte squattechniek voor het springen.',
+        purpose: 'Opbouw van basiskracht in de benen, betere heupbeweeglijkheid en correcte squattechniek voor het springen.',
         execution: 'Houd een dumbbell verticaal voor de borst. Zak neer totdat de dijen parallel aan de vloer zijn. Druk explosief omhoog via de hielen.',
       },
       bulgarian_split_squat: {
@@ -176,7 +189,7 @@ export const translations = {
       rdl: {
         name: 'Dumbbell Romanian Deadlift (RDL)',
         purpose: 'Versterkt de achterste ketenspieren voor explosieve heupextensie tijdens de sprong en afremming bij de landing.',
-        execution: 'Scharnieren bij de heupen met licht gebogen knieën, dumbbells langs de schenen naar beneden. Knijp de bilspieren samen om terug omhoog te komen.',
+        execution: 'Scharnieren vanuit de heupen met licht gebogen knieën, dumbbells langs de schenen naar beneden. Knijp de bilspieren samen om terug omhoog te komen.',
       },
       dumbbell_squat_jump: {
         name: 'Dumbbell Squat Jumps',
@@ -186,7 +199,7 @@ export const translations = {
       approach_box_jump: {
         name: 'Aanloopsprongen op Kist',
         purpose: 'De meest sportspecifieke springtraining. Kopieert de exacte aanloopbeweging en armzwaai timing van volleybal.',
-        execution: 'Doe een klassieke 3-staps volleybaalaanloop (Links-Rechts-Links voor rechtse spikers) en spring op een kist van 30-50 cm. Stap voorzichtig naar beneden.',
+        execution: 'Doe een klassieke 3-staps volleybalaanloop (Links-Rechts-Links voor rechtse spikers) en spring op een kist van 30-50 cm. Stap voorzichtig naar beneden.',
       },
       tuck_jumps: {
         name: 'Tuck Jumps',
@@ -200,7 +213,7 @@ export const translations = {
       },
       dumbbell_shoulder_press: {
         name: 'Dumbbell Schouderpers',
-        purpose: 'Bouwt basissterkte in de schouder voor stabiele spikaanvallen en blokkeren.',
+        purpose: 'Bouwt basissterkte in de schouder voor stabiele smashaanvallen en blokkeren.',
         execution: 'Zit of sta met een actieve core. Duw dumbbells van schouderhoogte naar volledig gestrekte armen boven het hoofd. Controleer de neerwaartse beweging.',
       },
       explosive_pushups: {
@@ -210,12 +223,12 @@ export const translations = {
       },
       bent_over_rows: {
         name: 'Voorovergebogen Dumbbell Roeien',
-        purpose: 'Biedt essentieel tegengewicht aan spikaanvallen; vertraagt de armzwaai veilig en stabiliseert het schouderblad.',
-        execution: 'Knik voorover met een platte, neutrale rug. Trek dumbbells naar de heupholte en knijp de schouderbladen stevig samen.',
+        purpose: 'Biedt essentieel tegengewicht aan smashaanvallen; vertraagt de armzwaai veilig en stabiliseert het schouderblad.',
+        execution: 'Knik voorover met een platte, neutrale rug. Trek dumbbells naar de heuploopte en knijp de schouderbladen stevig samen.',
       },
       dead_bug: {
         name: 'Dead Bug',
-        purpose: 'Verbetert anti-extensie kernstabiliteit en voorkomt gevaarlijke hyperextensie van de onderrug tijdens de spikaanval.',
+        purpose: 'Verbetert anti-extensie kernstabiliteit en voorkomt gevaarlijke hyperextensie van de onderrug tijdens de smashaanval.',
         execution: 'Lig op je rug met armen en benen omhoog. Laat de tegenovergestelde arm en het been langzaam naar de vloer zakken zonder de onderrug te laten buigen.',
       },
       forearm_plank: {
@@ -236,16 +249,16 @@ export const translations = {
       t_cone_drill: {
         name: 'T-Kegel Behendigheidsdrill',
         purpose: 'Oefent snelle overgangen tussen sprinten, defensief schuiffelen en achteruitlopen.',
-        execution: 'Sprint 10m naar de middelste kegel, schuifel 5m links, 10m rechts, 5m links terug naar midden, dan achterwaarts naar de start.',
+        execution: 'Sprint 10m naar de middelste kegel, zijpas 5m links, 10m rechts, 5m links terug naar midden, dan achterwaarts naar de start.',
       },
       block_jump_shuffle: {
         name: 'Bloksprong naar Lateraal Schuifelen',
         purpose: 'Kopieert perfect de bewegingsvereisten van een middenblokkeerder langs het net tijdens een rally.',
-        execution: 'Doe een maximale verticale bloksprong. Land direct en schuifel twee stappen naar rechts, spring dan opnieuw. Herhaal naar links.',
+        execution: 'Doe een maximale verticale bloksprong. Land direct en zijpas twee stappen naar rechts, spring dan opnieuw. Herhaal naar links.',
       },
       side_lying_external_rotation: {
         name: 'Zijliggend Externe Rotatie',
-        purpose: 'Isoleert en versterkt de externe schouderdraaiende spieren om spikbewegingen te compenseren en impingement te voorkomen.',
+        purpose: 'Isoleert en versterkt de externe schouderdraaiende spieren om smashbewegingen te compenseren en impingement te voorkomen.',
         execution: 'Lig op zijde. Houd werkelleboog tegen de ribben op 90 graden. Roteer de dumbbell gecontroleerd omhoog naar het plafond.',
       },
       side_lying_flexion: {
@@ -270,8 +283,8 @@ export const translations = {
       },
       single_leg_rdl: {
         name: 'Eénbeens RDL',
-        purpose: 'Ontwikkelt enorme excentrische kniebuiger kracht voor snelle afremming en daagt enkel proprioceptie uit.',
-        execution: 'Sta op één been. Knik bij de heup, strek het vrije been achteruit als tegengewicht. Houd een platte rug. Knijp bilspieren samen om terug te komen.',
+        purpose: 'Ontwikkelt enorme excentrische hamstrings kracht voor snelle afremming en daagt enkel proprioceptie uit.',
+        execution: 'Sta op één been. Knik vanuit de heup, strek het vrije been achteruit als tegengewicht. Houd een platte rug. Knijp bilspieren samen om terug te komen.',
       },
       single_leg_wall_sit: {
         name: 'Eénbeens Muurzit',
@@ -285,7 +298,7 @@ export const translations = {
       },
       broad_jump_stabilize: {
         name: 'Versprongstabilisatie',
-        purpose: 'Leert krachtabsorptie en versterkt correcte drievoudige-flexie landingsmechanica om valgusinstorting te voorkomen.',
+        purpose: 'Leert krachtabsorptie en versterkt correcte drievoudige flexie landingsmechanica om valgusinstorting te voorkomen.',
         execution: 'Spring horizontaal voorwaarts. Land zacht met heupen naar achteren. Bevriezer de landingspositie 2 volle seconden, knieën mogen niet naar binnen zakken.',
       },
       ankle_sup_pro: {
@@ -326,7 +339,7 @@ export const translations = {
       court_speed_drill: {
         name: 'Veldsnelheid (5-Kegels)',
         purpose: 'Ontwikkelt sportspecifiek ruimtelijk inzicht en dwingt optimale net-gerichte verdedigingstechnieken af.',
-        execution: 'Sprint, schuifel of loop achteruit van het midden naar elke hoek in een willekeurig patroon. Houd altijd je torso recht naar het net.',
+        execution: 'Sprint, zijpas of loop achteruit van het midden naar elke hoek in een willekeurig patroon. Houd altijd je torso recht naar het net.',
       },
       visual_command_chopping: {
         name: 'Visuele Commando Dribbel',
@@ -350,8 +363,8 @@ export const translations = {
       },
       med_ball_rotational_throws: {
         name: 'Med Ball Rotatieworpen',
-        purpose: 'Overbelast expliciet de rotatiemechanica en dwarskracht vereist voor het slaan (spiken).',
-        execution: 'Sta loodrecht op een stevige muur. Roteer explosief door de heupen en torso om de medicijnbal tegen de muur te werpen.',
+        purpose: 'Overbelast expliciet de rotatiemechanica en dwarskracht vereist voor het smashen.',
+        execution: 'Sta loodrecht op een stevige muur. Roteer explosief door de heupen en torso om de medicine ball tegen de muur te werpen.',
       },
       half_kneeling_landmine_press: {
         name: 'Halfknielende Landmine Pers',
@@ -380,7 +393,7 @@ export const translations = {
       },
       russian_twists: {
         name: 'Russian Twists',
-        purpose: 'Conditioneert de interne en externe schuine buikspieren voor de repetitieve rotatiebelasting bij het slaan.',
+        purpose: 'Conditioneert de interne en externe schuine buikspieren voor de repetitieve rotatiebelasting bij het smashen.',
         execution: 'Balanceer op je zitbotjes met een lichte leuning naar achteren en een aangespannen core. Roteer de romp van zij naar zij.',
       },
       bird_dogs: {
@@ -411,7 +424,7 @@ export const translations = {
       cane_assisted_rom: {
         name: 'Stok Geassisteerde ROM',
         purpose: 'Fase 1 Rehab: Herstelt passief de verloren bewegingsvrijheid in het gewricht op veilige wijze.',
-        execution: 'Lig op de rug en houd een lichte stok vast. Gebruik je ongeschonden arm om zachtjes je geblesseerde arm over of naast je hoofd te duwen.',
+        execution: 'Lig op de rug en houd een lichte stok vast. Gebruik je gezonde arm om zachtjes je geblesseerde arm over of naast je hoofd te duwen.',
       },
       band_internal_rotation: {
         name: 'Dynamische Interne Rotatie (Elastiek)',
@@ -445,17 +458,17 @@ export const translations = {
       },
       four_way_band_ankle: {
         name: '4-Benade Band Enkelkracht',
-        purpose: 'Fase 2 Enkel Rehab: Bouwt isotonisch uithoudingsvermogen op in alle passieve stabiliserende structuren en botbanden.',
+        purpose: 'Fase 2 Enkel Rehab: Bouwt isotonisch uithoudingsvermogen op in alle passieve stabiliserende structuren en gewrichtsbanden.',
         execution: 'Veranker een kleine rekband rond je tenenvoet; lever hierin tegendruk door 4 kanten uit te drukken (rugwaarts optillen, strekken, inwaarts, uitwaarts).',
       },
       balance_progression: {
         name: 'Balans Progressie (Proprioceptie)',
-        purpose: 'Fase 3 Enkel Rehab: Herscholt beschadigde zenuwcellen in het enkelkapsel om voetposities terug aan te wijzen, ter voorkoming van toekomstige snelle omslagen.',
+        purpose: 'Fase 3 Enkel Rehab: Herscloopt beschadigde zenuwcellen in het enkelkapsel om voetposities terug aan te wijzen, ter voorkoming van toekomstige snelle omslagen.',
         execution: 'Strikte 1-benige standen. Sluit ogen als het je te handig wordt. Ga gradueel nadien over in wankelere bodems of activeer plotse hand/arm klappen.',
       },
       single_leg_knee_extension_isometrics: {
         name: '1-Benige Knie Extensie Isometrie',
-        purpose: 'Stage 1 Patellaere Tendinopathie: Langdurige zware isometrie veroorzaakt immense verdovende zenuweffecten direct in de knie en stilt peesontsteking snel.',
+        purpose: 'Stage 1 Patellaere Tendinopathie: Langdurige zware isometrie veroorzaakt immense verdovende zenuweffecten direct in de knie en stilt tendinitis snel.',
         execution: 'Trek zittend een stevig verankerde elastiek voorwaarts, houd hiervoor je knie vast tussen de 30 ten 60 hoekgraden gefixeerd. Ontspan nimmer over de tijd duur.',
       },
     },
@@ -487,6 +500,7 @@ export const translations = {
       minutesPerDay: (m) => `${m}m`,
       goalLabels: {
         vertical: 'Max Vertical Jump',
+        knee_rehab: 'Knee Strengthening & Rehab',
         injury: 'Injury Prevention',
         agility: 'Court Agility',
       },
@@ -539,6 +553,18 @@ export const translations = {
         advanced: 'Advanced',
       },
       schedule: 'Training Schedule',
+      scheduleSelect: 'Select Your Days',
+      workoutsPerWeek: 'Workouts / Week',
+      matchDaysIntro: 'Volleyball / Match Days',
+      days: 'Days',
+      scheduleAuto: 'Automatic (Recommended)',
+      scheduleManual: 'Specific Days',
+      scheduleDayTypes: {
+        workout: 'Strength Workout',
+        rest: 'Rest Day',
+        match: 'Match / Volleyball',
+      },
+      scheduleDayLabels: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
       daysPerWeek: 'Days / Week',
       timePerSession: 'Time / Session',
       language: 'Language',
@@ -565,7 +591,7 @@ export const translations = {
       step2Title: 'Input Base\nMetrics.',
       step3Title: 'Set Training\nParameters.',
       displayNameLabel: 'Display Name / Alias',
-      displayNamePlaceholder: 'e.g. Volleyball Phenom',
+      displayNamePlaceloopder: 'e.g. Volleyball Phenom',
       unitsLabel: 'System Units',
       equipmentLabel: 'Equipment Available',
       bodyweightOnly: 'Bodyweight Only',

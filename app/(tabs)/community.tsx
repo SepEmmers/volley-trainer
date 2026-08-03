@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { useSocialStore } from '../../src/store/useSocialStore';
 import { useAppStore } from '../../src/store/useAppStore';
-import { searchUsers, followUser, unfollowUser, fetchCommunityExercises } from '../../src/services/socialService';
-import { Search, UserPlus, UserMinus, Download, Shield, Eye, Flame, Globe } from 'lucide-react-native';
+import { searchUsers, followUser, unfollowUser, fetchCommunityExercises, fetchFollowingProfiles } from '../../src/services/socialService';
+import { Search, UserPlus, UserMinus, Download, Shield, Flame, Globe, Trophy } from 'lucide-react-native';
 import { useTranslation } from '../../src/i18n/useTranslation';
 
 export default function CommunityTabScreen() {
@@ -26,11 +26,29 @@ export default function CommunityTabScreen() {
   const [communityExercises, setCommunityExercises] = useState<any[]>([]);
   const [isLoadingEx, setIsLoadingEx] = useState(true);
 
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
+
   useEffect(() => {
     if (activeTab === 'exercises') {
       loadExercises();
+    } else if (activeTab === 'users' && following.length > 0) {
+      loadLeaderboard();
     }
-  }, [activeTab]);
+  }, [activeTab, following]);
+
+  const loadLeaderboard = async () => {
+    setIsLoadingLeaderboard(true);
+    const profiles: any[] = await fetchFollowingProfiles(following);
+    // Sort primarily by streak, then by spikes as tiebreaker
+    const sorted = profiles.sort((a, b) => {
+       const streakDiff = (b.streak || 0) - (a.streak || 0);
+       if (streakDiff !== 0) return streakDiff;
+       return (b.spikes || 0) - (a.spikes || 0);
+    });
+    setLeaderboard(sorted);
+    setIsLoadingLeaderboard(false);
+  };
 
   const loadExercises = async () => {
     setIsLoadingEx(true);
@@ -217,12 +235,58 @@ export default function CommunityTabScreen() {
 
             {!searchQ && following.length > 0 && (
               <View className="mt-6">
-                <Text className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">Mijn Vrienden ({following.length})</Text>
-                {/* Note: In a full app you'd fetch the actual profiles of the following list from Firestore. 
-                    For this prototype, we're just showing the IDs/search results. */}
-                <View className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-                   <Text className="text-blue-700 font-bold text-center text-sm">Gebruik de zoekbalk om meer spelers te vinden en te volgen!</Text>
-                </View>
+                <Text className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-4">
+                  {language === 'nl' ? `Mijn Vrienden (${following.length})` : `My Friends (${following.length})`}
+                </Text>
+                
+                {isLoadingLeaderboard ? (
+                  <ActivityIndicator size="small" color="#FF5A00" className="mt-4" />
+                ) : (
+                  leaderboard.map((user, index) => {
+                    const isFollowing = true; // since they are in the following list
+                    return (
+                      <View key={user.uid} className="bg-white p-4 rounded-2xl border border-slate-200 mb-3 flex-row items-center justify-between shadow-sm">
+                        <View className="flex-row items-center gap-4 flex-1">
+                          <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200 relative">
+                            {index === 0 && leaderboard.length > 1 && (
+                              <View className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 border border-yellow-500 z-10 w-6 h-6 items-center justify-center">
+                                <Trophy size={10} color="#fff" />
+                              </View>
+                            )}
+                            <Text className={`text-lg font-bold ${index === 0 ? 'text-yellow-600' : 'text-slate-400'}`}>
+                              {index + 1}
+                            </Text>
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-base font-black text-brand-dark" numberOfLines={1}>{user.displayName}</Text>
+                            <View className="flex-row items-center gap-3 mt-0.5">
+                              <View className="flex-row items-center gap-1">
+                                <Flame size={12} color={user.streak > 0 ? '#EF4444' : '#94A3B8'} />
+                                <Text className={`text-xs font-bold ${user.streak > 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                                  {user.streak || 0} {language === 'nl' ? 'Dagen' : 'Days'}
+                                </Text>
+                              </View>
+                              <View className="flex-row items-center gap-1">
+                                <Globe size={12} color="#3B82F6" />
+                                <Text className="text-xs font-bold text-blue-500">
+                                  {user.spikes || 0} Spikes
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        
+                        <TouchableOpacity 
+                          onPress={() => handleToggleFollow(user.uid, user.displayName)}
+                          className="p-3 bg-red-50 border border-red-100 rounded-full ml-2"
+                        >
+                          <UserMinus size={16} color="#DC2626" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })
+                )}
+                
               </View>
             )}
 

@@ -2,8 +2,20 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import 'react-native-reanimated';
 import '../global.css';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { subscribeToAuthState } from '../src/services/authService';
 import { downloadFromCloud, mergeCloudWithLocal } from '../src/services/syncService';
@@ -73,13 +85,21 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="(modals)/manage-exercises" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
+      <View style={{ flex: 1, backgroundColor: Platform.OS === 'web' ? '#0F172A' : '#ffffff', alignItems: 'center' }}>
+        <View style={{ flex: 1, width: '100%', maxWidth: Platform.OS === 'web' ? 500 : '100%', backgroundColor: '#ffffff', overflow: 'hidden', boxShadow: Platform.OS === 'web' ? '0px 0px 40px rgba(0,0,0,0.5)' : 'none' }}>
+          <Stack>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+            <Stack.Screen name="(modals)/manage-exercises" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="(modals)/settings-profile" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="(modals)/settings-account" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="(modals)/settings-privacy" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="(modals)/settings-preferences" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack>
+        </View>
+      </View>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

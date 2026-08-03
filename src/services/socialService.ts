@@ -8,15 +8,19 @@ import { doc, setDoc, deleteDoc, collection, query, where, getDocs, orderBy, get
 export const updatePublicProfile = async (uid: string, profileData: any, isPublic: boolean) => {
   if (!uid) return;
   const profileRef = doc(db, 'users', uid, 'profile', 'public');
+  const topLevelProfileRef = doc(db, 'public_profiles', uid);
   
   if (isPublic) {
-    await setDoc(profileRef, {
+    const dataToSave = {
       ...profileData,
       updatedAt: serverTimestamp()
-    }, { merge: true });
+    };
+    await setDoc(profileRef, dataToSave, { merge: true });
+    await setDoc(topLevelProfileRef, dataToSave, { merge: true });
   } else {
     try {
       await deleteDoc(profileRef);
+      await deleteDoc(topLevelProfileRef);
     } catch (_) {
       // ignore if doesn't exist
     }
@@ -106,5 +110,25 @@ export const unfollowUser = async (currentUid: string, targetUid: string) => {
     await deleteDoc(doc(db, 'users', targetUid, 'followers', currentUid));
   } catch (e) {
     console.error(e);
+  }
+};
+
+export const fetchFollowingProfiles = async (followingIds: string[]) => {
+  if (!followingIds || followingIds.length === 0) return [];
+  try {
+    // Fetch individually to bypass the 10-item limit of 'in' queries. Good enough for prototype scale.
+    const promises = followingIds.map(async (id) => {
+      const docRef = doc(db, 'public_profiles', id);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return { uid: snap.id, ...snap.data() };
+      }
+      return null;
+    });
+    const results = await Promise.all(promises);
+    return results.filter(r => r !== null);
+  } catch (error) {
+    console.warn("Failed to fetch following profiles:", error);
+    return [];
   }
 };

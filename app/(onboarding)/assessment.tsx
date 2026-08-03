@@ -68,6 +68,13 @@ export default function AssessmentScreen() {
       illustration: BalanceSvg,
       desc: 'Stand on one leg with a slight knee bend. Ensure your knee does not cave inward (valgus collapse).',
       flag: null
+    },
+    {
+      id: 'knee_valgus',
+      title: 'Knee Valgus & VMO Test',
+      illustration: SquatSvg,
+      desc: 'Perform a single-leg squat to 60° knee flexion. Check if your kneecap caves inward past your big toe (Dynamic Knee Valgus) or causes knee discomfort.',
+      flag: 'jumper_knee'
     }
   ];
 

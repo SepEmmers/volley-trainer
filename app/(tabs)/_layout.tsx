@@ -106,6 +106,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="community"
         options={{
+          href: null,
           title: 'Community',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon icon={Globe} color={color} focused={focused} />

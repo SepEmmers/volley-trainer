@@ -9,7 +9,9 @@ import { ALL_ITEMS, RARITIES, PLAYER_ITEMS, BALL_ITEMS, COURT_ITEMS, HALL_ITEMS,
 import { useTranslation } from '../../src/i18n/useTranslation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, G, Line, Ellipse, Rect, Text as SvgText } from 'react-native-svg';
-import { Package, Star, Lock, Trophy, Zap, X, CheckCircle2 } from 'lucide-react-native';
+import { Package, Star, Lock, Trophy, Zap, X, CheckCircle2, Play, Award, Sparkles } from 'lucide-react-native';
+import VolleyMatchMiniGame from '../../src/components/VolleyMatchMiniGame';
+import DailyQuestsModal from '../../src/components/DailyQuestsModal';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -79,8 +81,8 @@ const CourtSvg = ({ courtColor = '#4F7942', lineColor = '#ffffff', equipped }: {
 };
 
 // ─── Animated Volleyball Chest SVG ────────────────────────────────────────────
-const VolleyballChest = ({ isOpening, scale }: { isOpening: boolean; scale: Animated.Value }) => (
-  <Animated.View style={{ transform: [{ scale }] }}>
+const VolleyballChest = ({ isOpening, scale }: { isOpening: boolean; scale: Animated.Value | 1 }) => (
+  <Animated.View style={scale !== 1 ? { transform: [{ scale }] } : undefined}>
     <Svg width={180} height={160} viewBox="0 0 180 160">
       <G>
         <Path d="M 20 80 L 20 140 Q 20 155 35 155 L 145 155 Q 160 155 160 140 L 160 80 Z"
@@ -266,61 +268,95 @@ export default function TeamScreen() {
   const [pickerItems, setPickerItems] = useState<any[]>([]);
   const [showPicker, setShowPicker] = useState(false);
 
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const resultSlide = useRef(new Animated.Value(300)).current;
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [showQuestsModal, setShowQuestsModal] = useState(false);
+
+  // Chest Unboxing States
+  const [chestModalVisible, setChestModalVisible] = useState(false);
+  const [unboxingPhase, setUnboxingPhase] = useState<'idle' | 'shaking' | 'teasing' | 'revealed'>('idle');
+  
+  // Animations inside Modal
+  const modalShakeAnim = useRef(new Animated.Value(0)).current;
+  const modalScaleAnim = useRef(new Animated.Value(1)).current;
+  const modalGlowAnim = useRef(new Animated.Value(0)).current;
+  const itemSpringAnim = useRef(new Animated.Value(0)).current; // 0 to 1 for the massive pop-in
+  const flashOpacityAnim = useRef(new Animated.Value(0)).current; // Massive white flash
 
   const canOpen = spikes >= CHEST_PRICE;
   const ownedSet = new Set(inventory);
 
-  const handleOpenChest = async () => {
-    if (!canOpen || isOpeningChest) return;
-    setIsOpeningChest(true);
-    setShowResult(false);
+  const handleOpenChestClick = () => {
+    if (!canOpen || chestModalVisible) return;
+    setResultItem(null);
+    setUnboxingPhase('shaking');
+    setChestModalVisible(true);
+    itemSpringAnim.setValue(0);
+    flashOpacityAnim.setValue(0);
+    modalScaleAnim.setValue(1);
 
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -1, duration: 100, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 1.5, duration: 100, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -1.5, duration: 100, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
-    ]).start();
+    // 1. Initial aggressive shake and scale up
+    Animated.parallel([
+       Animated.sequence([
+         Animated.timing(modalShakeAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: -1, duration: 100, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: 1.5, duration: 100, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: -1.5, duration: 100, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: 2, duration: 80, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: -2, duration: 80, useNativeDriver: true }),
+         Animated.timing(modalShakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
+       ]),
+       Animated.timing(modalScaleAnim, { toValue: 1.3, duration: 600, easing: Easing.out(Easing.ease), useNativeDriver: true })
+    ]).start(() => {
+       // Roll the item mechanically behind the scenes
+       const result = openChest(inventory);
+       setResultItem((result as any).item);
+       setIsDuplicate((result as any).isDuplicate);
+       spendSpikes(CHEST_PRICE);
+       
+       if ((result as any).isNew) {
+         addToInventory((result as any).item.id);
+       } else {
+         awardSpikes((result as any).duplicateSpikes);
+       }
 
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.sequence([
-          Animated.timing(scaleAnim, { toValue: 1.2, duration: 200, useNativeDriver: true }),
-          Animated.timing(scaleAnim, { toValue: 0.95, duration: 150, useNativeDriver: true }),
-          Animated.timing(scaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-        ]),
-        Animated.sequence([
-          Animated.timing(glowAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(glowAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
-        ]),
-      ]).start();
-    }, 600);
+       // 2. Tease the exact rarity color with a massive glowing aura
+       setUnboxingPhase('teasing');
+       Animated.loop(
+         Animated.sequence([
+           Animated.timing(modalGlowAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+           Animated.timing(modalGlowAnim, { toValue: 0.5, duration: 800, useNativeDriver: true })
+         ])
+       ).start();
+    });
+  };
 
-    setTimeout(() => {
-      const result = openChest(inventory);
-      setResultItem(result.item);
-      setIsDuplicate(result.isDuplicate);
-      spendSpikes(CHEST_PRICE);
-      if (result.isNew) {
-        addToInventory((result.item as any).id);
-      } else {
-        awardSpikes(result.duplicateSpikes);
-      }
-      resultSlide.setValue(300);
-      Animated.timing(resultSlide, {
-        toValue: 0,
-        duration: 400,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
-      }).start();
-      setShowResult(true);
-      setIsOpeningChest(false);
-    }, 1200);
+  const handleTeaseTap = () => {
+    if (unboxingPhase !== 'teasing' || !resultItem) return;
+    setUnboxingPhase('revealed');
+    modalGlowAnim.stopAnimation();
+
+    const isHighRarity = ['epic', 'legendary', 'mythic'].includes(resultItem.rarity);
+
+    // If epic or higher, flash the screen white
+    if (isHighRarity) {
+       Animated.sequence([
+         Animated.timing(flashOpacityAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+         Animated.timing(flashOpacityAnim, { toValue: 0, duration: 800, useNativeDriver: true })
+       ]).start();
+    }
+
+    // Spring the item massively
+    Animated.spring(itemSpringAnim, {
+       toValue: 1,
+       tension: 40,
+       friction: 5,
+       useNativeDriver: true
+    }).start();
+  };
+
+  const closeChestModal = () => {
+    setChestModalVisible(false);
+    setUnboxingPhase('idle');
   };
 
   const openEquipPicker = (slotKey: string, items: any[]) => {
@@ -329,18 +365,23 @@ export default function TeamScreen() {
     setShowPicker(true);
   };
 
-  const shakeInterpolate = shakeAnim.interpolate({
-    inputRange: [-1.5, 0, 1.5],
-    outputRange: ['-8deg', '0deg', '8deg'],
+  const shakeInterpolate = modalShakeAnim.interpolate({
+    inputRange: [-2, 0, 2],
+    outputRange: ['-12deg', '0deg', '12deg'],
   });
 
-  const glowOpacity = glowAnim.interpolate({
+  const rarity = resultItem ? RARITIES[resultItem.rarity as keyof typeof RARITIES] : null;
+
+  // Derive the tease color heavily depending on rarity rank
+  const teaseColor = rarity ? rarity.color : '#FFFFFF';
+  const teaseGlow = modalGlowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 0.6],
+    outputRange: [0, 1],
   });
+
+  const itemScale = itemSpringAnim.interpolate({ inputRange: [0, 1], outputRange: [0.1, 1] });
 
   const ownedCount = inventory.filter((id: string) => ALL_ITEMS.find((i: any) => i.id === id)).length;
-  const rarity = resultItem ? RARITIES[resultItem.rarity as keyof typeof RARITIES] : null;
   const activeItems = ALL_CATEGORIES.find(c => c.id === activeCategory)?.items || ALL_ITEMS;
 
   // Court color from equipped court/hall
@@ -366,6 +407,76 @@ export default function TeamScreen() {
         onClose={() => setShowPicker(false)}
       />
 
+      {/* Chest Unboxing Modal */}
+      <Modal visible={chestModalVisible} transparent animationType="fade" onRequestClose={closeChestModal}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.95)', justifyContent: 'center', alignItems: 'center' }}>
+           {/* Step 1 & 2: Shaking Chest & Teasing Glow */}
+           {(unboxingPhase === 'shaking' || unboxingPhase === 'teasing') && (
+             <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+               {/* Massive Glow Aura */}
+               <Animated.View style={{
+                  position: 'absolute',
+                  width: 300, height: 300, borderRadius: 150,
+                  backgroundColor: unboxingPhase === 'teasing' ? teaseColor : '#FF5A00',
+                  opacity: unboxingPhase === 'teasing' ? teaseGlow : 0,
+                  transform: [{ scale: 2 }]
+               }} />
+
+               {/* Shaking Chest */}
+               <Animated.View style={{ transform: [{ rotate: shakeInterpolate }, { scale: modalScaleAnim }] }}>
+                 <VolleyballChest isOpening={unboxingPhase === 'teasing'} scale={1} />
+               </Animated.View>
+
+               {/* Tap to Reveal Prompt */}
+               {unboxingPhase === 'teasing' && (
+                 <Animated.View style={{ position: 'absolute', bottom: 100, opacity: teaseGlow }}>
+                    <TouchableOpacity onPress={handleTeaseTap} style={{ backgroundColor: '#ffffff', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 30, shadowColor: teaseColor, shadowOpacity: 0.8, shadowRadius: 20, shadowOffset: { width:0, height:0 } }}>
+                       <Text style={{ color: '#0F172A', fontSize: 22, fontWeight: '900', letterSpacing: 2 }}>
+                         {language === 'nl' ? 'TIK OM TE ONTHULLEN!' : 'TAP TO REVEAL!'}
+                       </Text>
+                    </TouchableOpacity>
+                 </Animated.View>
+               )}
+             </View>
+           )}
+
+           {/* Step 3: Massive Reveal Flash & Spring */}
+           {unboxingPhase === 'revealed' && resultItem && (
+             <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <Animated.View style={{
+                   position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
+                   backgroundColor: '#ffffff', opacity: flashOpacityAnim, zIndex: 10
+                }} />
+                <Animated.View style={{
+                   alignItems: 'center',
+                   transform: [{ scale: itemScale }],
+                   zIndex: 20
+                }}>
+                   <Text style={{ fontSize: 16, fontWeight: '900', color: teaseColor, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 20, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: {width: 0, height: 2}, textShadowRadius: 4 }}>
+                     {isDuplicate ? (language === 'nl' ? 'DUPLICAAT (+30)' : 'DUPLICATE (+30)') : (language === 'nl' ? 'NIEUW GEWONNEN!' : 'NEW UNLOCK!')}
+                   </Text>
+                   <View style={{ width: 220, height: 220, borderRadius: 110, backgroundColor: teaseColor + '33', borderWidth: 8, borderColor: teaseColor, alignItems: 'center', justifyContent: 'center', shadowColor: teaseColor, shadowRadius: 40, shadowOpacity: 1, shadowOffset: {width:0, height:0} }}>
+                     <Text style={{ fontSize: 100 }}>{resultItem.emoji}</Text>
+                   </View>
+                   <Text style={{ fontSize: 36, fontWeight: '900', color: '#ffffff', marginTop: 24, textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: {width: 0, height: 2}, textShadowRadius: 8 }}>
+                     {resultItem.name?.[language] || resultItem.name?.nl}
+                   </Text>
+                   <View style={{ marginTop: 12 }}><RarityBadge rarity={resultItem.rarity} language={language} /></View>
+                   <Text style={{ fontSize: 16, color: '#CBD5E1', marginTop: 16, textAlign: 'center', paddingHorizontal: 40, lineHeight: 24 }}>
+                     {resultItem.desc?.[language] || resultItem.desc?.nl}
+                   </Text>
+
+                   <TouchableOpacity onPress={closeChestModal} style={{ marginTop: 60, backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 40, paddingVertical: 16, borderRadius: 30, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' }}>
+                     <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800' }}>
+                       {language === 'nl' ? 'DOORGAAN' : 'CONTINUE'}
+                     </Text>
+                   </TouchableOpacity>
+                </Animated.View>
+             </View>
+           )}
+        </View>
+      </Modal>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
         {/* Header */}
@@ -388,8 +499,31 @@ export default function TeamScreen() {
             </View>
           </View>
 
+          {/* Match Arena & Daily Quests Action Buttons */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+            <TouchableOpacity
+              onPress={() => setShowMatchModal(true)}
+              style={{ flex: 1, backgroundColor: '#FF5A00', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: '#FF5A00', shadowOpacity: 0.4, shadowRadius: 8 }}
+            >
+              <Play fill="#ffffff" color="#ffffff" size={18} />
+              <Text style={{ color: 'white', fontWeight: '900', fontSize: 14 }}>
+                {language === 'nl' ? 'MATCH ARENA' : 'MATCH ARENA'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setShowQuestsModal(true)}
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            >
+              <Award color="#FFD700" size={18} />
+              <Text style={{ color: 'white', fontWeight: '900', fontSize: 13 }}>
+                {language === 'nl' ? 'QUESTS' : 'QUESTS'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Stats */}
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
             <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: 12, alignItems: 'center' }}>
               <Trophy size={18} color="#FFD700" />
               <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '900', marginTop: 4 }}>{ownedCount}</Text>
@@ -443,22 +577,19 @@ export default function TeamScreen() {
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
                   {language === 'nl' ? 'Volleybal Kist' : 'Volleyball Chest'}
                 </Text>
-                <Animated.View style={{ position: 'absolute', top: 40, width: 200, height: 200, borderRadius: 100, backgroundColor: canOpen ? '#FF5A00' : '#CBD5E1', opacity: glowOpacity, transform: [{ scale: 1.5 }] }} />
-                <Animated.View style={{ transform: [{ rotate: shakeInterpolate }] }}>
-                  <VolleyballChest isOpening={isOpeningChest} scale={scaleAnim} />
-                </Animated.View>
+                <VolleyballChest isOpening={false} scale={1} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFF7F0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, marginTop: 4, marginBottom: 16, borderWidth: 1.5, borderColor: '#FFD4B3' }}>
                   <VolleyballIcon size={16} color="#FF5A00" />
                   <Text style={{ fontSize: 15, fontWeight: '900', color: '#FF5A00' }}>{CHEST_PRICE} Spikes</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={handleOpenChest}
-                  disabled={!canOpen || isOpeningChest}
+                  onPress={handleOpenChestClick}
+                  disabled={!canOpen}
                   style={{ width: '100%', backgroundColor: canOpen ? '#FF5A00' : '#E2E8F0', borderRadius: 18, paddingVertical: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}
                 >
                   <VolleyballIcon size={22} color={canOpen ? '#ffffff' : '#94A3B8'} />
                   <Text style={{ color: canOpen ? '#ffffff' : '#94A3B8', fontWeight: '900', fontSize: 18 }}>
-                    {isOpeningChest ? (language === 'nl' ? 'Openen...' : 'Opening...') : (language === 'nl' ? 'Open Kist' : 'Open Chest')}
+                    {language === 'nl' ? 'Open Kist' : 'Open Chest'}
                   </Text>
                 </TouchableOpacity>
                 {!canOpen && (
@@ -467,17 +598,6 @@ export default function TeamScreen() {
                   </Text>
                 )}
               </View>
-              {showResult && resultItem && rarity && (
-                <Animated.View style={{ borderTopWidth: 2, borderTopColor: rarity.color, backgroundColor: rarity.color + '11', padding: 20, alignItems: 'center', transform: [{ translateY: resultSlide }] }}>
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: rarity.color, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
-                    {isDuplicate ? (language === 'nl' ? '🎊 Duplicaat (+30 Spikes)' : '🎊 Duplicate (+30 Spikes)') : (language === 'nl' ? '🎉 Nieuw Item!' : '🎉 New Item!')}
-                  </Text>
-                  <Text style={{ fontSize: 52, marginBottom: 8 }}>{resultItem.emoji}</Text>
-                  <Text style={{ fontSize: 20, fontWeight: '900', color: '#0F172A', marginBottom: 6 }}>{resultItem.name?.[language] || resultItem.name?.nl}</Text>
-                  <RarityBadge rarity={resultItem.rarity} language={language} />
-                  <Text style={{ fontSize: 13, color: '#64748B', marginTop: 8, textAlign: 'center', fontWeight: '500' }}>{resultItem.desc?.[language] || resultItem.desc?.nl}</Text>
-                </Animated.View>
-              )}
             </View>
 
             {/* Spike info */}
@@ -623,6 +743,19 @@ export default function TeamScreen() {
         )}
 
       </ScrollView>
+
+      {/* Volley Match Mini-Game Modal */}
+      <VolleyMatchMiniGame
+        visible={showMatchModal}
+        onClose={() => setShowMatchModal(false)}
+      />
+
+      {/* Daily Quests Modal */}
+      <DailyQuestsModal
+        visible={showQuestsModal}
+        onClose={() => setShowQuestsModal(false)}
+      />
+
     </SafeAreaView>
   );
 }
