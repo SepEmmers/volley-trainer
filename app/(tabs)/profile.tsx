@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { useAppStore } from '../../src/store/useAppStore';
-import { User, Settings, Shield, Globe, ChevronRight } from 'lucide-react-native';
+import { Settings, Shield, Globe, ChevronRight, RefreshCw } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from '../../src/i18n/useTranslation';
 
@@ -39,6 +39,15 @@ export default function ProfileScreen() {
       color: '#10B981',
       bg: '#D1FAE5',
       route: '/(modals)/settings-privacy'
+    },
+    {
+      id: 'onboarding',
+      icon: RefreshCw,
+      title: language === 'nl' ? 'Onboarding & Schema' : 'Onboarding & Program',
+      subtitle: language === 'nl' ? 'Herstart intake & genereer nieuw schema' : 'Restart intake & re-generate program',
+      color: '#FF5A00',
+      bg: '#FFF7F0',
+      route: '/(onboarding)/profile'
     }
   ];
 
@@ -93,16 +102,6 @@ export default function ProfileScreen() {
               <ChevronRight color="#CBD5E1" size={20} />
             </TouchableOpacity>
           ))}
-
-          {/* Redo Onboarding / Re-Generate Program Button */}
-          <TouchableOpacity
-            onPress={() => router.push('/(onboarding)/profile')}
-            style={{ backgroundColor: '#FF5A00', borderRadius: 20, padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 8 }}
-          >
-            <Text style={{ color: 'white', fontWeight: '900', fontSize: 16 }}>
-              🔄 {language === 'nl' ? 'Onboarding Herdoen / Programma Opnieuw Genereren' : 'Redo Onboarding & Re-Generate Program'}
-            </Text>
-          </TouchableOpacity>
         </View>
 
       </ScrollView>
