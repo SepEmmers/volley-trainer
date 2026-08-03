@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { useAppStore } from '../../src/store/useAppStore';
-import { Settings, Shield, Globe, ChevronRight, RefreshCw } from 'lucide-react-native';
+import { User, Settings, Shield, Globe, ChevronRight, RefreshCw } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from '../../src/i18n/useTranslation';
 
@@ -13,6 +13,17 @@ export default function ProfileScreen() {
   const profile = useAppStore(state => state.profile);
 
   const menuItems = [
+    {
+      id: 'account',
+      icon: User,
+      title: language === 'nl' ? 'Account & Sync' : 'Account & Sync',
+      subtitle: authUser && !authUser.isAnonymous 
+        ? (language === 'nl' ? 'Gesynchroniseerd via Cloud' : 'Synced via Cloud') 
+        : (language === 'nl' ? 'Koppel account voor sync tussen devices' : 'Link account for multi-device sync'),
+      color: '#3B82F6',
+      bg: '#EFF6FF',
+      route: '/(modals)/settings-account'
+    },
     {
       id: 'profile',
       icon: Settings,
