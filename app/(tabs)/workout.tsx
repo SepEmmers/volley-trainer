@@ -75,14 +75,53 @@ export default function WorkoutScreen() {
     });
 
     const alreadyCalibrated = phaseExercises.filter((e: any) => !e.trackable || (prefilled[e.id] as number) > 0).map((e: any) => e.id);
-    setCalibrated(alreadyCalibrated);
-    setCurrentWeights(prefilled);
-  }, [stats.currentPhaseId]);
+  const [adminTapCount, setAdminTapCount] = useState(0);
+  const [showAdminToast, setShowAdminToast] = useState(false);
 
   const getDynamicSets = (baseSets: number) => {
     if (profile.level === 'novice') return Math.max(1, baseSets - 1);
     if (profile.level === 'advanced') return baseSets + 1;
     return baseSets;
+  };
+
+  const autoCompleteAll = () => {
+    const allSets: Record<string, number[]> = {};
+    phaseExercises.forEach((ex: any) => {
+      const totalSets = getDynamicSets(ex.sets);
+      allSets[ex.id] = Array.from({ length: totalSets }, (_, i) => i + 1);
+    });
+    setCompletedSets(allSets);
+    setShowAdminToast(true);
+    setTimeout(() => setShowAdminToast(false), 3000);
+  };
+
+  // Expose admin cheatcodes on window & keyboard shortcuts (Shift+D or `)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).autoCompleteWorkout = autoCompleteAll;
+      (window as any).autoFinishWorkout = autoCompleteAll;
+      (window as any).cheatAddSpikes = (amount: number = 1000) => {
+        useAppStore.getState().awardSpikes(amount);
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === '`' || (e.shiftKey && (e.key === 'D' || e.key === 'd'))) {
+          autoCompleteAll();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [phaseExercises, profile.level]);
+
+  const handleHeaderTap = () => {
+    if (adminTapCount + 1 >= 3) {
+      setAdminTapCount(0);
+      autoCompleteAll();
+    } else {
+      setAdminTapCount(prev => prev + 1);
+      setTimeout(() => setAdminTapCount(0), 2000);
+    }
   };
 
   const toggleSet = (exId: string, setIndex: number, isTimed: boolean = false, duration: number = 30) => {
@@ -203,14 +242,25 @@ export default function WorkoutScreen() {
     <SafeAreaView className="flex-1 bg-brand-white">
       
       {/* Sticky Progress Header */}
-      <View className="pt-4 px-6 pb-5 border-b border-slate-200 bg-white/95 shadow-sm z-10">
+      <TouchableOpacity 
+        activeOpacity={0.9}
+        onPress={handleHeaderTap}
+        className="pt-4 px-6 pb-5 border-b border-slate-200 bg-white/95 shadow-sm z-10"
+      >
         <View className="flex-row justify-between items-center mb-4">
           <View>
              <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('workout.header')}</Text>
              <Text className="text-2xl font-black text-brand-dark tracking-tight">{t('workout.phase')(currentPhase.id)}</Text>
           </View>
-          <View className="bg-slate-100 px-3 py-1.5 rounded-full">
-            <Text style={{ color: phaseColor }} className="text-sm font-bold">{totalExercisesDone}/{phaseExercises.length}</Text>
+          <View className="flex-row items-center gap-2">
+            {showAdminToast && (
+              <View style={{ backgroundColor: '#F59E0B', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }}>⚡ DEBUG: AUTO-DONE</Text>
+              </View>
+            )}
+            <View className="bg-slate-100 px-3 py-1.5 rounded-full">
+              <Text style={{ color: phaseColor }} className="text-sm font-bold">{totalExercisesDone}/{phaseExercises.length}</Text>
+            </View>
           </View>
         </View>
         <View className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
@@ -219,7 +269,7 @@ export default function WorkoutScreen() {
             className="h-full rounded-full transition-all duration-500" 
           />
         </View>
-      </View>
+      </TouchableOpacity>
 
       <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
