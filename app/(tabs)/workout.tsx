@@ -75,6 +75,10 @@ export default function WorkoutScreen() {
     });
 
     const alreadyCalibrated = phaseExercises.filter((e: any) => !e.trackable || (prefilled[e.id] as number) > 0).map((e: any) => e.id);
+    setCalibrated(alreadyCalibrated);
+    setCurrentWeights(prefilled);
+  }, [stats.currentPhaseId]);
+
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [showAdminToast, setShowAdminToast] = useState(false);
 
